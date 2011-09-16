@@ -364,4 +364,9 @@ extern struct semaphore octeon_bootbus_sem;
 
 struct irq_domain *octeon_irq_get_block_domain(int node, uint8_t block);
 
+typedef void (*octeon_message_fn_t)(void);
+int octeon_request_ipi_handler(octeon_message_fn_t fn);
+void octeon_send_ipi_single(int cpu, unsigned int action);
+void octeon_release_ipi_handler(int action);
+
 #endif /* __ASM_OCTEON_OCTEON_H */
