@@ -8,13 +8,11 @@
 
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
-#include <linux/etherdevice.h>
 #include <linux/capability.h>
 #include <linux/net_tstamp.h>
 #include <linux/interrupt.h>
 #include <linux/netdevice.h>
 #include <linux/spinlock.h>
-#include <linux/if_vlan.h>
 #include <linux/of_mdio.h>
 #include <linux/module.h>
 #include <linux/of_net.h>
@@ -40,9 +38,6 @@
  */
 #define OCTEON_MGMT_RX_RING_SIZE 512
 #define OCTEON_MGMT_TX_RING_SIZE 128
-
-/* Allow 8 bytes for vlan and FCS. */
-#define OCTEON_MGMT_RX_HEADROOM (ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN)
 
 union mgmt_port_ring_entry {
 	u64 d64;
@@ -85,8 +80,6 @@ union mgmt_port_ring_entry {
 
 #define AGL_GMX_PRT_CFG			0x10
 #define AGL_GMX_RX_FRM_CTL		0x18
-#define AGL_GMX_RX_FRM_MAX		0x30
-#define AGL_GMX_RX_JABBER		0x38
 #define AGL_GMX_RX_STATS_CTL		0x50
 
 #define AGL_GMX_RX_STATS_PKTS_DRP	0xb0
@@ -211,7 +204,7 @@ static void octeon_mgmt_rx_fill_ring(struct net_device *netdev)
 		struct sk_buff *skb;
 
 		/* CN56XX pass 1 needs 8 bytes of padding.  */
-		size = netdev->mtu + OCTEON_MGMT_RX_HEADROOM + 8 + NET_IP_ALIGN;
+		size = netdev->mtu + OCTEON_FRAME_HEADER_LEN + 8 + NET_IP_ALIGN;
 
 		skb = netdev_alloc_skb(netdev, size);
 		if (!skb)
@@ -369,7 +362,7 @@ static u64 octeon_mgmt_dequeue_rx_buffer(struct octeon_mgmt *p,
 	*pskb = __skb_dequeue(&p->rx_list);
 
 	dma_unmap_single(p->dev, re.s.addr,
-			 ETH_FRAME_LEN + OCTEON_MGMT_RX_HEADROOM,
+			 ETH_FRAME_LEN + OCTEON_FRAME_HEADER_LEN,
 			 DMA_FROM_DEVICE);
 
 	return re.d64;
