@@ -2174,7 +2174,7 @@ static void build_r4000_tlb_load_handler(void)
 
 		switch (current_cpu_type()) {
 		default:
-			if (cpu_has_mips_r2_exec_hazard) {
+			if (cpu_has_mips_r2) {
 				uasm_i_ehb(&p);
 
 		case CPU_CAVIUM_OCTEON:
@@ -2249,7 +2249,7 @@ static void build_r4000_tlb_load_handler(void)
 
 		switch (current_cpu_type()) {
 		default:
-			if (cpu_has_mips_r2_exec_hazard) {
+			if (cpu_has_mips_r2) {
 				uasm_i_ehb(&p);
 
 		case CPU_CAVIUM_OCTEON:
