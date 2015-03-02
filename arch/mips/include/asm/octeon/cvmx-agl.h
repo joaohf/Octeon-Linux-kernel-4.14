@@ -1,5 +1,5 @@
 /***********************license start***************
- * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * Copyright (c) 2013  Cavium Inc. (support@cavium.com). All rights
  * reserved.
  *
  *
@@ -40,73 +40,65 @@
 /**
  * @file
  *
- * Packet buffer defines.
+ * Functions for AGL (RGMII) commong initialization, configuration.
  *
- * <hr>$Revision: 95816 $<hr>
- *
+ * <hr>$Revision: $<hr>
  */
 
-#ifndef __CVMX_PACKET_H__
-#define __CVMX_PACKET_H__
+#ifndef __CVMX_AGL_H__
+#define __CVMX_AGL_H__
 
-#ifdef	__cplusplus
+#ifdef CVMX_BUILD_FOR_LINUX_KERNEL
+#include <asm/octeon/cvmx.h>
+#include <asm/octeon/cvmx-helper.h>
+#else
+#include "cvmx-helper.h"
+#endif
+
+#ifdef  __cplusplus
 /* *INDENT-OFF* */
 extern "C" {
 /* *INDENT-ON* */
 #endif
 
-union cvmx_buf_ptr_pki {
-	uint64_t u64;
-	struct {
-		CVMX_BITFIELD_FIELD(uint64_t size:16,
-		/**< The size of the segment pointed to by addr (in bytes) */
-		CVMX_BITFIELD_FIELD(uint64_t packet_outside_wqe:1,
-		/**< sets is packet is not stored in same buffer as WQE*/
-		CVMX_BITFIELD_FIELD(uint64_t rsvd0:5,
-		CVMX_BITFIELD_FIELD(uint64_t addr:42,	/**< Pointer to the first byte of the data, NOT buffer */
-		))));
-	};
-};
+/*
+ * @param port port to enable
+ *
+ * @return Zero on success, negative on failure
+ */
+extern int cvmx_agl_enable(int port);
 
-typedef union cvmx_buf_ptr_pki cvmx_buf_ptr_pki_t;
+extern cvmx_helper_link_info_t cvmx_agl_link_get(int port);
+
+/*
+ * Set MII/RGMII link based on mode.
+ *
+ * @param port   interface port to set the link.
+ * @param link_info  Link status
+ *
+ * @return       0 on success and 1 on failure
+ */
+extern int cvmx_agl_link_set(int port, cvmx_helper_link_info_t link_info);
 
 /**
- * This structure defines a buffer pointer on Octeon
+ * Disables the sending of flow control (pause) frames on the specified
+ * AGL (RGMII) port(s).
+ *
+ * @param interface Which interface (0 or 1)
+ * @param port_mask Mask (4bits) of which ports on the interface to disable
+ *                  backpressure on.
+ *                  1 => disable backpressure
+ *                  0 => enable backpressure
+ *
+ * @return 0 on success
+ *         -1 on error
  */
-union cvmx_buf_ptr {
-	void *ptr;
-	uint64_t u64;
-	struct {
-#ifdef __BIG_ENDIAN_BITFIELD
-		/* if set, invert the "free" pick of the overall
-		 * packet. HW always sets this bit to 0 on inbound
-		 * packet */
-		uint64_t i:1;
-			      /**< if set, invert the "free" pick of the overall packet. HW always sets this bit to 0 on inbound packet */
-		uint64_t back:4;
-			      /**< Indicates the amount to back up to get to the buffer start in cache lines. In most cases
-                                this is less than one complete cache line, so the value is zero */
-		uint64_t pool:3;
-			      /**< The pool that the buffer came from / goes to */
-		uint64_t size:16;
-			      /**< The size of the segment pointed to by addr (in bytes) */
-		uint64_t addr:40;
-			      /**< Pointer to the first byte of the data, NOT buffer */
-#else
-		uint64_t addr:40;
-		uint64_t size:16;
-		uint64_t pool:3;
-		uint64_t back:4;
-		uint64_t i:1;
-#endif
-	} s;
-};
+extern int cvmx_agl_set_backpressure_override(uint32_t interface,
+					      uint32_t port_mask);
 
-typedef union cvmx_buf_ptr cvmx_buf_ptr_t;
-
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 /* *INDENT-OFF* */
 }
 /* *INDENT-ON* */
 #endif
-#endif /*  __CVMX_PACKET_H__ */
+#endif /* __CVMX_AGL_H__ */

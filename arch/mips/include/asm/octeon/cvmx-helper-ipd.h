@@ -1,5 +1,5 @@
 /***********************license start***************
- * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * Copyright (c) 2003-2014  Cavium Inc. (support@cavium.com). All rights
  * reserved.
  *
  *
@@ -40,73 +40,31 @@
 /**
  * @file
  *
- * Packet buffer defines.
- *
- * <hr>$Revision: 95816 $<hr>
- *
+ * Helper functions for IPD
  */
 
-#ifndef __CVMX_PACKET_H__
-#define __CVMX_PACKET_H__
+#ifndef __CVMX_HELPER_IPD_H__
+#define __CVMX_HELPER_IPD_H__
 
-#ifdef	__cplusplus
+#ifdef CVMX_BUILD_FOR_LINUX_KERNEL
+#include <asm/octeon/cvmx.h>
+#include <asm/octeon/cvmx-ipd.h>
+#else
+#include "cvmx-ipd.h"
+#endif
+
+#ifdef __cplusplus
 /* *INDENT-OFF* */
 extern "C" {
 /* *INDENT-ON* */
 #endif
-
-union cvmx_buf_ptr_pki {
-	uint64_t u64;
-	struct {
-		CVMX_BITFIELD_FIELD(uint64_t size:16,
-		/**< The size of the segment pointed to by addr (in bytes) */
-		CVMX_BITFIELD_FIELD(uint64_t packet_outside_wqe:1,
-		/**< sets is packet is not stored in same buffer as WQE*/
-		CVMX_BITFIELD_FIELD(uint64_t rsvd0:5,
-		CVMX_BITFIELD_FIELD(uint64_t addr:42,	/**< Pointer to the first byte of the data, NOT buffer */
-		))));
-	};
-};
-
-typedef union cvmx_buf_ptr_pki cvmx_buf_ptr_pki_t;
-
-/**
- * This structure defines a buffer pointer on Octeon
- */
-union cvmx_buf_ptr {
-	void *ptr;
-	uint64_t u64;
-	struct {
-#ifdef __BIG_ENDIAN_BITFIELD
-		/* if set, invert the "free" pick of the overall
-		 * packet. HW always sets this bit to 0 on inbound
-		 * packet */
-		uint64_t i:1;
-			      /**< if set, invert the "free" pick of the overall packet. HW always sets this bit to 0 on inbound packet */
-		uint64_t back:4;
-			      /**< Indicates the amount to back up to get to the buffer start in cache lines. In most cases
-                                this is less than one complete cache line, so the value is zero */
-		uint64_t pool:3;
-			      /**< The pool that the buffer came from / goes to */
-		uint64_t size:16;
-			      /**< The size of the segment pointed to by addr (in bytes) */
-		uint64_t addr:40;
-			      /**< Pointer to the first byte of the data, NOT buffer */
-#else
-		uint64_t addr:40;
-		uint64_t size:16;
-		uint64_t pool:3;
-		uint64_t back:4;
-		uint64_t i:1;
-#endif
-	} s;
-};
-
-typedef union cvmx_buf_ptr cvmx_buf_ptr_t;
-
-#ifdef	__cplusplus
+void cvmx_helper_ipd_set_wqe_no_ptr_mode(bool mode);
+void cvmx_helper_ipd_pkt_wqe_le_mode(bool mode);
+int __cvmx_helper_ipd_global_setup(void);
+int __cvmx_helper_ipd_setup_interface(int interface);
+#ifdef __cplusplus
 /* *INDENT-OFF* */
 }
 /* *INDENT-ON* */
 #endif
-#endif /*  __CVMX_PACKET_H__ */
+#endif /* __CVMX_HELPER_PKI_H__ */

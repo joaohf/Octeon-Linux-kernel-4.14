@@ -1,5 +1,5 @@
 /***********************license start***************
- * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * Copyright (c) 2012  Cavium Inc. (support@cavium.com). All rights
  * reserved.
  *
  *
@@ -37,76 +37,64 @@
  * PERFORMANCE OF THE SOFTWARE LIES WITH YOU.
  ***********************license end**************************************/
 
-/**
- * @file
- *
- * Packet buffer defines.
- *
- * <hr>$Revision: 95816 $<hr>
- *
- */
+#ifndef __CVMX_APP_CONFIG_H__
+#define __CVMX_APP_CONFIG_H__
 
-#ifndef __CVMX_PACKET_H__
-#define __CVMX_PACKET_H__
-
-#ifdef	__cplusplus
+#ifdef    __cplusplus
 /* *INDENT-OFF* */
 extern "C" {
 /* *INDENT-ON* */
 #endif
 
-union cvmx_buf_ptr_pki {
-	uint64_t u64;
-	struct {
-		CVMX_BITFIELD_FIELD(uint64_t size:16,
-		/**< The size of the segment pointed to by addr (in bytes) */
-		CVMX_BITFIELD_FIELD(uint64_t packet_outside_wqe:1,
-		/**< sets is packet is not stored in same buffer as WQE*/
-		CVMX_BITFIELD_FIELD(uint64_t rsvd0:5,
-		CVMX_BITFIELD_FIELD(uint64_t addr:42,	/**< Pointer to the first byte of the data, NOT buffer */
-		))));
-	};
-};
+/* This defines the name of the named block from which config(pko, pools)
+   is exported/imported */
+#define CVMX_APP_CONFIG "cvmx-app-config"
 
-typedef union cvmx_buf_ptr_pki cvmx_buf_ptr_pki_t;
+/* skip_app_config */
+extern int skip_app_config;
 
 /**
- * This structure defines a buffer pointer on Octeon
+ * Sets the skip_app_config. This can be called by the application when
+ * it wants to skip the configuration.
  */
-union cvmx_buf_ptr {
-	void *ptr;
-	uint64_t u64;
-	struct {
-#ifdef __BIG_ENDIAN_BITFIELD
-		/* if set, invert the "free" pick of the overall
-		 * packet. HW always sets this bit to 0 on inbound
-		 * packet */
-		uint64_t i:1;
-			      /**< if set, invert the "free" pick of the overall packet. HW always sets this bit to 0 on inbound packet */
-		uint64_t back:4;
-			      /**< Indicates the amount to back up to get to the buffer start in cache lines. In most cases
-                                this is less than one complete cache line, so the value is zero */
-		uint64_t pool:3;
-			      /**< The pool that the buffer came from / goes to */
-		uint64_t size:16;
-			      /**< The size of the segment pointed to by addr (in bytes) */
-		uint64_t addr:40;
-			      /**< Pointer to the first byte of the data, NOT buffer */
-#else
-		uint64_t addr:40;
-		uint64_t size:16;
-		uint64_t pool:3;
-		uint64_t back:4;
-		uint64_t i:1;
-#endif
-	} s;
-};
+void cvmx_skip_app_config_set(void);
 
-typedef union cvmx_buf_ptr cvmx_buf_ptr_t;
+/**
+ * @INTERNAL
+ * Called by apps to export app config to other
+ * cooperating applications using a named block
+ * defined by param block_name.
+ *
+ * @param block_name Name of the named block to use for exporting config.
+ *
+ * @return 0 on success.
+ */
+int __cvmx_export_app_config_to_named_block(char * block_name);
 
-#ifdef	__cplusplus
+/**
+ * @INTERNAL
+ * Called by apps to import app config from other
+ * cooperating applications using a named block
+ * defined by param block_name.
+ *
+ * @param block_name Name of the named block to use for exporting config.
+ *
+ * @return 0 on success.
+ */
+int __cvmx_import_app_config_from_named_block(char * block_name);
+
+/**
+ * @INTERNAL
+ * Called by apps to clean app config named block.
+ */
+void __cvmx_export_app_config_cleanup(void);
+
+int __cvmx_export_config(void);
+
+#ifdef  __cplusplus
 /* *INDENT-OFF* */
 }
 /* *INDENT-ON* */
 #endif
-#endif /*  __CVMX_PACKET_H__ */
+
+#endif /* __CVMX_APP_CONFIG_H__ */

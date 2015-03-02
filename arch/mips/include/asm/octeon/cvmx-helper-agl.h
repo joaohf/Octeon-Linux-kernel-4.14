@@ -1,5 +1,5 @@
 /***********************license start***************
- * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * Copyright (c) 2013  Cavium Inc. (support@cavium.com). All rights
  * reserved.
  *
  *
@@ -40,38 +40,60 @@
 /**
  * @file
  *
- * Functions for SGMII initialization, configuration,
+ * Functions for AGL (RGMII) initialization, configuration,
  * and monitoring.
  *
- * <hr>$Revision: 107037 $<hr>
+ * <hr>$Revision: 83639 $<hr>
  */
-#ifndef __CVMX_HELPER_SGMII_H__
-#define __CVMX_HELPER_SGMII_H__
+
+#ifndef __CVMX_HELPER_AGL_H__
+#define __CVMX_HELPER_AGL_H__
+
+#ifdef CVMX_BUILD_FOR_LINUX_KERNEL
+#include <asm/octeon/cvmx.h>
+#include <asm/octeon/cvmx-qlm.h>
+#include <asm/octeon/cvmx-helper.h>
+#include <asm/octeon/cvmx-agl-defs.h>
+#else
+#include "cvmx.h"
+#include "cvmx-agl.h"
+#include "cvmx-helper.h"
+#include "cvmx-agl-defs.h"
+#endif
+
+#ifdef  __cplusplus
+/* *INDENT-OFF* */
+extern "C" {
+/* *INDENT-ON* */
+#endif
+
+extern int __cvmx_helper_agl_enumerate(int interface);
+
+extern int cvmx_helper_agl_get_port(int xiface);
 
 /**
  * @INTERNAL
- * Probe a SGMII interface and determine the number of ports
- * connected to it. The SGMII interface should still be down after
- * this call.
+ * Probe a RGMII interface and determine the number of ports
+ * connected to it. The RGMII interface should still be down
+ * after this call.
  *
- * @param xiface Interface to probe
+ * @param interface Interface to probe
  *
  * @return Number of ports on the interface. Zero to disable.
  */
-extern int __cvmx_helper_sgmii_probe(int xiface);
-extern int __cvmx_helper_sgmii_enumerate(int xiface);
+extern int __cvmx_helper_agl_probe(int interface);
 
 /**
  * @INTERNAL
- * Bringup and enable a SGMII interface. After this call packet
+ * Bringup and enable a RGMII interface. After this call packet
  * I/O should be fully functional. This is called with IPD
  * enabled but PKO disabled.
  *
- * @param xiface Interface to bring up
+ * @param interface Interface to bring up
  *
  * @return Zero on success, negative on failure
  */
-extern int __cvmx_helper_sgmii_enable(int xiface);
+extern int __cvmx_helper_agl_enable(int interface);
 
 /**
  * @INTERNAL
@@ -84,36 +106,27 @@ extern int __cvmx_helper_sgmii_enable(int xiface);
  *
  * @return Link state
  */
-extern cvmx_helper_link_info_t __cvmx_helper_sgmii_link_get(int ipd_port);
+extern cvmx_helper_link_info_t __cvmx_helper_agl_link_get(int ipd_port);
 
 /**
  * @INTERNAL
  * Configure an IPD/PKO port for the specified link state. This
  * function does not influence auto negotiation at the PHY level.
  * The passed link state must always match the link state returned
- * by cvmx_helper_link_get().
+ * by cvmx_helper_link_get(). It is normally best to use
+ * cvmx_helper_link_autoconf() instead.
  *
  * @param ipd_port  IPD/PKO port to configure
  * @param link_info The new link state
  *
  * @return Zero on success, negative on failure
  */
-extern int __cvmx_helper_sgmii_link_set(int ipd_port, cvmx_helper_link_info_t link_info);
+extern int __cvmx_helper_agl_link_set(int ipd_port,
+				      cvmx_helper_link_info_t link_info);
 
-/**
- * @INTERNAL
- * Configure a port for internal and/or external loopback. Internal loopback
- * causes packets sent by the port to be received by Octeon. External loopback
- * causes packets received from the wire to sent out again.
- *
- * @param ipd_port IPD/PKO port to loopback.
- * @param enable_internal
- *                 Non zero if you want internal loopback
- * @param enable_external
- *                 Non zero if you want external loopback
- *
- * @return Zero on success, negative on failure.
- */
-extern int __cvmx_helper_sgmii_configure_loopback(int ipd_port, int enable_internal, int enable_external);
-
+#ifdef  __cplusplus
+/* *INDENT-OFF* */
+}
+/* *INDENT-ON* */
 #endif
+#endif /* __CVMX_HELPER_AGL_H__ */

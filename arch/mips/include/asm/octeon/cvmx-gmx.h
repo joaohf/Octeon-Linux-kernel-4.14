@@ -40,14 +40,13 @@
 /**
  * @file
  *
- * Packet buffer defines.
+ * Interface to the GMX hardware.
  *
- * <hr>$Revision: 95816 $<hr>
- *
+ * <hr>$Revision: 112021 $<hr>
  */
 
-#ifndef __CVMX_PACKET_H__
-#define __CVMX_PACKET_H__
+#ifndef __CVMX_GMX_H__
+#define __CVMX_GMX_H__
 
 #ifdef	__cplusplus
 /* *INDENT-OFF* */
@@ -55,58 +54,15 @@ extern "C" {
 /* *INDENT-ON* */
 #endif
 
-union cvmx_buf_ptr_pki {
-	uint64_t u64;
-	struct {
-		CVMX_BITFIELD_FIELD(uint64_t size:16,
-		/**< The size of the segment pointed to by addr (in bytes) */
-		CVMX_BITFIELD_FIELD(uint64_t packet_outside_wqe:1,
-		/**< sets is packet is not stored in same buffer as WQE*/
-		CVMX_BITFIELD_FIELD(uint64_t rsvd0:5,
-		CVMX_BITFIELD_FIELD(uint64_t addr:42,	/**< Pointer to the first byte of the data, NOT buffer */
-		))));
-	};
-};
+/* CSR typedefs have been moved to cvmx-gmx-defs.h */
 
-typedef union cvmx_buf_ptr_pki cvmx_buf_ptr_pki_t;
+int cvmx_gmx_set_backpressure_override(uint32_t interface, uint32_t port_mask);
 
-/**
- * This structure defines a buffer pointer on Octeon
- */
-union cvmx_buf_ptr {
-	void *ptr;
-	uint64_t u64;
-	struct {
-#ifdef __BIG_ENDIAN_BITFIELD
-		/* if set, invert the "free" pick of the overall
-		 * packet. HW always sets this bit to 0 on inbound
-		 * packet */
-		uint64_t i:1;
-			      /**< if set, invert the "free" pick of the overall packet. HW always sets this bit to 0 on inbound packet */
-		uint64_t back:4;
-			      /**< Indicates the amount to back up to get to the buffer start in cache lines. In most cases
-                                this is less than one complete cache line, so the value is zero */
-		uint64_t pool:3;
-			      /**< The pool that the buffer came from / goes to */
-		uint64_t size:16;
-			      /**< The size of the segment pointed to by addr (in bytes) */
-		uint64_t addr:40;
-			      /**< Pointer to the first byte of the data, NOT buffer */
-#else
-		uint64_t addr:40;
-		uint64_t size:16;
-		uint64_t pool:3;
-		uint64_t back:4;
-		uint64_t i:1;
-#endif
-	} s;
-};
-
-typedef union cvmx_buf_ptr cvmx_buf_ptr_t;
+int cvmx_agl_set_backpressure_override(uint32_t interface, uint32_t port_mask);
 
 #ifdef	__cplusplus
 /* *INDENT-OFF* */
 }
 /* *INDENT-ON* */
 #endif
-#endif /*  __CVMX_PACKET_H__ */
+#endif

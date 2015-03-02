@@ -1,5 +1,5 @@
 /***********************license start***************
- * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * Copyright (c) 2003-2014  Cavium Inc. (support@cavium.com). All rights
  * reserved.
  *
  *
@@ -40,73 +40,61 @@
 /**
  * @file
  *
- * Packet buffer defines.
- *
- * <hr>$Revision: 95816 $<hr>
- *
+ * PKO helper, configuration API
  */
 
-#ifndef __CVMX_PACKET_H__
-#define __CVMX_PACKET_H__
+#ifndef __CVMX_HELPER_PKO_H__
+#define __CVMX_HELPER_PKO_H__
 
-#ifdef	__cplusplus
-/* *INDENT-OFF* */
-extern "C" {
-/* *INDENT-ON* */
+/* CSR typedefs have been moved to cvmx-pko-defs.h */
+
+#if 0	// XXX Not clear what this is intended for !
+/**
+ * Definition of internal state for Packet output processing
+ */
+typedef struct {
+	uint64_t *start_ptr;		/**< ptr to start of buffer, offset kept in FAU reg */
+} cvmx_pko_state_elem_t;
 #endif
-
-union cvmx_buf_ptr_pki {
-	uint64_t u64;
-	struct {
-		CVMX_BITFIELD_FIELD(uint64_t size:16,
-		/**< The size of the segment pointed to by addr (in bytes) */
-		CVMX_BITFIELD_FIELD(uint64_t packet_outside_wqe:1,
-		/**< sets is packet is not stored in same buffer as WQE*/
-		CVMX_BITFIELD_FIELD(uint64_t rsvd0:5,
-		CVMX_BITFIELD_FIELD(uint64_t addr:42,	/**< Pointer to the first byte of the data, NOT buffer */
-		))));
-	};
-};
-
-typedef union cvmx_buf_ptr_pki cvmx_buf_ptr_pki_t;
 
 /**
- * This structure defines a buffer pointer on Octeon
+ * cvmx_override_pko_queue_priority(int ipd_port, uint64_t
+ * priorities[16]) is a function pointer. It is meant to allow
+ * customization of the PKO queue priorities based on the port
+ * number. Users should set this pointer to a function before
+ * calling any cvmx-helper operations.
  */
-union cvmx_buf_ptr {
-	void *ptr;
-	uint64_t u64;
-	struct {
-#ifdef __BIG_ENDIAN_BITFIELD
-		/* if set, invert the "free" pick of the overall
-		 * packet. HW always sets this bit to 0 on inbound
-		 * packet */
-		uint64_t i:1;
-			      /**< if set, invert the "free" pick of the overall packet. HW always sets this bit to 0 on inbound packet */
-		uint64_t back:4;
-			      /**< Indicates the amount to back up to get to the buffer start in cache lines. In most cases
-                                this is less than one complete cache line, so the value is zero */
-		uint64_t pool:3;
-			      /**< The pool that the buffer came from / goes to */
-		uint64_t size:16;
-			      /**< The size of the segment pointed to by addr (in bytes) */
-		uint64_t addr:40;
-			      /**< Pointer to the first byte of the data, NOT buffer */
-#else
-		uint64_t addr:40;
-		uint64_t size:16;
-		uint64_t pool:3;
-		uint64_t back:4;
-		uint64_t i:1;
-#endif
-	} s;
-};
+extern CVMX_SHARED void (*cvmx_override_pko_queue_priority) (int ipd_port, uint8_t * priorities);
 
-typedef union cvmx_buf_ptr cvmx_buf_ptr_t;
+/**
+ * Gets the fpa pool number of pko pool
+ */
+int64_t cvmx_fpa_get_pko_pool(void);
 
-#ifdef	__cplusplus
-/* *INDENT-OFF* */
+/**
+ * Gets the buffer size of pko pool
+ */
+uint64_t cvmx_fpa_get_pko_pool_block_size(void);
+
+/**
+ * Gets the buffer size  of pko pool
+ */
+uint64_t cvmx_fpa_get_pko_pool_buffer_count(void);
+
+
+int cvmx_helper_pko_init(void);
+
+/*
+ * This function is a no-op
+ * included here for backwards compatibility only.
+ */
+static inline  int cvmx_pko_initialize_local(void)
+{
+    return 0;
 }
-/* *INDENT-ON* */
-#endif
-#endif /*  __CVMX_PACKET_H__ */
+
+extern int __cvmx_helper_pko_drain(void);
+
+extern int __cvmx_helper_interface_setup_pko(int interface);
+
+#endif /* __CVMX_HELPER_PKO_H__ */
