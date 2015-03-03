@@ -1851,8 +1851,8 @@ int cvmx_helper_initialize_packet_io_node(unsigned int node)
 		result |= (*cvmx_export_app_config) ();
 	}
 
-	if (cvmx_ipd_cfg.ipd_enable && cvmx_pki_dflt_init[node])
-		result |= cvmx_helper_ipd_and_packet_input_enable_node(node);
+//	if (cvmx_ipd_cfg.ipd_enable && cvmx_pki_dflt_init[node])
+//		result |= cvmx_helper_ipd_and_packet_input_enable_node(node);
 	return result;
 }
 
@@ -1882,9 +1882,9 @@ EXPORT_SYMBOL(cvmx_helper_initialize_packet_io_global);
  */
 int cvmx_helper_initialize_packet_io_local(void)
 {
-	if (octeon_has_feature(OCTEON_FEATURE_CN78XX_WQE)) {
-		__cvmx_pko3_dq_table_setup();
-	}
+//	if (octeon_has_feature(OCTEON_FEATURE_CN78XX_WQE)) {
+//		__cvmx_pko3_dq_table_setup();
+//	}
 	return 0;
 }
 
@@ -1950,6 +1950,7 @@ int cvmx_agl_set_backpressure_override(uint32_t interface, uint32_t port_mask)
 	return 0;
 }
 
+#if 0
 /**
  * Helper function for global packet IO shutdown
  */
@@ -2027,6 +2028,7 @@ int cvmx_helper_shutdown_packet_io_global_cn78xx(int node)
 
 	return result;
 }
+#endif
 
 /**
  * Undo the initialization performed in
