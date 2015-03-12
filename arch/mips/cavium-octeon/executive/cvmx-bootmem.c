@@ -475,6 +475,7 @@ void *cvmx_bootmem_alloc_address(uint64_t size, uint64_t address,
 					address + size);
 }
 
+#if 0
 void *cvmx_bootmem_alloc_node(uint64_t node, uint64_t size, uint64_t alignment)
 {
 	return cvmx_bootmem_alloc_range(size, alignment,
@@ -484,6 +485,7 @@ void *cvmx_bootmem_alloc_node(uint64_t node, uint64_t size, uint64_t alignment)
 }
 
 EXPORT_SYMBOL(cvmx_bootmem_alloc_node);
+#endif
 
 void *cvmx_bootmem_alloc(uint64_t size, uint64_t alignment)
 {
@@ -1331,6 +1333,7 @@ frees_done:
 	return 1;
 }
 
+#if 0
 int64_t cvmx_bootmem_phy_mem_list_init_multi(uint8_t node_mask,
 					     uint32_t mem_sizes[],
 					     uint32_t low_reserved_bytes,
@@ -1459,6 +1462,7 @@ int64_t cvmx_bootmem_phy_mem_list_init_multi(uint8_t node_mask,
 #endif
 	return 1;
 }
+#endif
 
 int cvmx_bootmem_reserve_memory(uint64_t start_addr, uint64_t size,
 				const char *name, uint32_t flags)
