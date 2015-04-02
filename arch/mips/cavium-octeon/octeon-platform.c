@@ -454,6 +454,14 @@ const struct of_device_id octeon_ids[] __initconst = {
 	{},
 };
 
+#ifdef CONFIG_OCTEON_ETHERNET
+
+#define CVMX_HELPER_BOARD_MGMT_IPD_PORT     -10
+
+extern int cvmx_helper_board_get_mii_address(int ipd_port);
+extern int cvmx_helper_interface_enumerate(int xiface);
+extern int cvmx_helper_ports_on_interface(int interface);
+
 static bool __init octeon_has_88e1145(void)
 {
 	return !OCTEON_IS_MODEL(OCTEON_CN52XX) &&
@@ -699,6 +707,8 @@ void __init octeon_fill_mac_addresses(void)
 	}
 }
 
+#endif
+
 int __init octeon_prune_device_tree(void)
 {
 	int i, max_port, uart_mask;
@@ -762,6 +772,7 @@ int __init octeon_prune_device_tree(void)
 			for (i = 0; i <= 4; i++)
 				octeon_fdt_pip_iface(pip, i);
 	}
+#endif
 
 	/* I2C */
 	if (OCTEON_IS_MODEL(OCTEON_CN52XX) ||
