@@ -712,7 +712,6 @@ void __init octeon_fill_mac_addresses(void)
 int __init octeon_prune_device_tree(void)
 {
 	int i, max_port, uart_mask;
-	const char *pip_path;
 	const char *alias_prop;
 	char name_buffer[20];
 	int aliases;
