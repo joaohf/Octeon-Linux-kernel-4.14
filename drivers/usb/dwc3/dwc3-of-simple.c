@@ -179,7 +179,6 @@ static const struct of_device_id of_dwc3_simple_match[] = {
 	{ .compatible = "qcom,dwc3" },
 	{ .compatible = "rockchip,rk3399-dwc3" },
 	{ .compatible = "xlnx,zynqmp-dwc3" },
-	{ .compatible = "cavium,octeon-7130-usb-uctl" },
 	{ .compatible = "sprd,sc9860-dwc3" },
 	{ /* Sentinel */ }
 };

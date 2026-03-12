@@ -5,8 +5,8 @@
  *
  * Copyright (C) 2003, 2004 Ralf Baechle
  */
-#ifndef __ASM_MACH_OCTEON_MANGLE_PORT_H
-#define __ASM_MACH_OCTEON_MANGLE_PORT_H
+#ifndef __ASM_MACH_GENERIC_MANGLE_PORT_H
+#define __ASM_MACH_GENERIC_MANGLE_PORT_H
 
 #include <asm/byteorder.h>
 
@@ -55,4 +55,4 @@ static inline bool __should_swizzle_addr(u64 p)
 # define ioswabq(a, x)		(__should_swizzle_bits(a) ? le64_to_cpu(x) : x)
 # define __mem_ioswabq(a, x)	(x)
 
-#endif /* __ASM_MACH_OCTEON_MANGLE_PORT_H */
+#endif /* __ASM_MACH_GENERIC_MANGLE_PORT_H */

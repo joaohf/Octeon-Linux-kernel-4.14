@@ -300,23 +300,6 @@ static inline void iounmap(const volatile void __iomem *addr)
 #define war_io_reorder_wmb()		barrier()
 #endif
 
-#ifdef CONFIG_CPU_CAVIUM_OCTEON
-/*
- * Perform an immediate read after every write to an RSL
- * register to force the write to complete. It doesn't matter
- * what RSL read we do, so we choose MIO_BOOT_BIST_STAT
- * because it is fast and harmless.
- */
-#define OCTEON_MIO_BOOT_BIST_STAT 0x80011800000000F8ull
-#define octeon_rsl_sync(__a)						\
-	do {								\
-		if (__oct_addr_is_RSL((unsigned long __force)__a))	\
-			*(volatile u64 *)OCTEON_MIO_BOOT_BIST_STAT;	\
-	} while (0)
-#else
-#define octeon_rsl_sync(__a)			do { } while (0)
-#endif
-
 #define __BUILD_MEMORY_SINGLE(pfx, bwlq, type, irq)			\
 									\
 static inline void pfx##write##bwlq(type val,				\
@@ -353,8 +336,6 @@ static inline void pfx##write##bwlq(type val,				\
 			local_irq_restore(__flags);			\
 	} else								\
 		BUG();							\
-									\
-	octeon_rsl_sync(mem);						\
 }									\
 									\
 static inline type pfx##read##bwlq(const volatile void __iomem *mem)	\

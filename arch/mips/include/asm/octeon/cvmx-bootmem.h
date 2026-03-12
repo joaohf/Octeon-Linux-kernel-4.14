@@ -1,28 +1,40 @@
 /***********************license start***************
- * Author: Cavium Inc.
+ * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * reserved.
  *
- * Contact: support@cavium.com
- * This file is part of the OCTEON SDK
  *
- * Copyright (c) 2003-2010 Cavium Inc.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
  *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, Version 2, as
- * published by the Free Software Foundation.
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
  *
- * This file is distributed in the hope that it will be useful, but
- * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
- * NONINFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this file; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- * or visit http://www.gnu.org/licenses/.
- *
- * This file may also be available under a different license from Cavium.
- * Contact Cavium Inc. for more information
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+
+ *   * Neither the name of Cavium Inc. nor the names of
+ *     its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+
+ * This Software, including technical data, may be subject to U.S. export  control
+ * laws, including the U.S. Export Administration Act and its  associated
+ * regulations, and may be subject to export or import  regulations in other
+ * countries.
+
+ * TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED "AS IS"
+ * AND WITH ALL FAULTS AND CAVIUM INC. MAKES NO PROMISES, REPRESENTATIONS OR
+ * WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH RESPECT TO
+ * THE SOFTWARE, INCLUDING ITS CONDITION, ITS CONFORMITY TO ANY REPRESENTATION OR
+ * DESCRIPTION, OR THE EXISTENCE OF ANY LATENT OR PATENT DEFECTS, AND CAVIUM
+ * SPECIFICALLY DISCLAIMS ALL IMPLIED (IF ANY) WARRANTIES OF TITLE,
+ * MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF
+ * VIRUSES, ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. THE ENTIRE  RISK ARISING OUT OF USE OR
+ * PERFORMANCE OF THE SOFTWARE LIES WITH YOU.
  ***********************license end**************************************/
 
 /**
@@ -30,11 +42,18 @@
  * Simple allocate only memory allocator.  Used to allocate memory at application
  * start time.
  *
+ * <hr>$Revision: 169699 $<hr>
  *
  */
 
 #ifndef __CVMX_BOOTMEM_H__
 #define __CVMX_BOOTMEM_H__
+
+#ifdef	__cplusplus
+/* *INDENT-OFF* */
+extern "C" {
+/* *INDENT-ON* */
+#endif
 
 #define CVMX_BOOTMEM_NAME_LEN 128	/* Must be multiple of 8, changing breaks ABI */
 #define CVMX_BOOTMEM_NUM_NAMED_BLOCKS 64	/* Can change without breaking ABI */
@@ -103,11 +122,11 @@ typedef struct cvmx_bootmem_named_block_desc cvmx_bootmem_named_block_desc_t;
 #define CVMX_BOOTMEM_DESC_MIN_VER   0	/* CVMX bootmem descriptor minor version */
 
 /* First three members of cvmx_bootmem_desc_t are left in original
- * positions for backwards compatibility.
- */
-struct cvmx_bootmem_desc {
+** positions for backwards compatibility.
+*/
+typedef struct {
+	/* Linux compatible proxy for __BIG_ENDIAN */
 #if defined(__BIG_ENDIAN_BITFIELD) || defined(CVMX_BUILD_FOR_LINUX_HOST)
-	/* spinlock to control access to list */
 	uint32_t lock;
 			    /**< spinlock to control access to list */
 	uint32_t flags;
@@ -126,7 +145,8 @@ struct cvmx_bootmem_desc {
 	uint32_t named_block_name_len;
 					 /**< length of name array in bootmem blocks */
 	uint64_t named_block_array_addr;
-#else                           /* __LITTLE_ENDIAN */
+					 /**< address of named memory block descriptors */
+#else				/* __LITTLE_ENDIAN */
 	uint32_t flags;
 	uint32_t lock;
 	uint64_t head_addr;
@@ -140,14 +160,14 @@ struct cvmx_bootmem_desc {
 	uint32_t named_block_num_blocks;
 	uint64_t named_block_array_addr;
 #endif
-};
+} cvmx_bootmem_desc_t;
 
 /**
  * Initialize the boot alloc memory structures. This is
  * normally called inside of cvmx_user_app_init()
  *
- * @mem_desc_addr:	Address of the free memory list
- * Returns
+ * @param mem_desc_addr	Address of the free memory list
+ * @return
  */
 extern int cvmx_bootmem_init(uint64_t mem_desc_addr);
 
@@ -156,10 +176,10 @@ extern int cvmx_bootmem_init(uint64_t mem_desc_addr);
  * to the application by the bootloader.
  * This is an allocate-only algorithm, so freeing memory is not possible.
  *
- * @size:      Size in bytes of block to allocate
- * @alignment: Alignment required - must be power of 2
+ * @param size      Size in bytes of block to allocate
+ * @param alignment Alignment required - must be power of 2
  *
- * Returns pointer to block of memory, NULL on error
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc(uint64_t size, uint64_t alignment);
 
@@ -168,14 +188,13 @@ extern void *cvmx_bootmem_alloc(uint64_t size, uint64_t alignment);
  * to the application by the bootloader from a specific node.
  * This is an allocate-only algorithm, so freeing memory is not possible.
  *
- * @node:	The node to allocate memory from
- * @size:  Size in bytes of block to allocate
- * @alignment: Alignment required - must be power of 2
+ * @param node	The node to allocate memory from
+ * @param size  Size in bytes of block to allocate
+ * @param alignment Alignment required - must be power of 2
  *
- * Returns pointer to block of memory, NULL on error
+ * @return pointer to block of memory, NULL on error
  */
-extern void *cvmx_bootmem_alloc_node(uint64_t node, uint64_t size,
-				     uint64_t alignment);
+extern void *cvmx_bootmem_alloc_node(uint64_t node, uint64_t size, uint64_t alignment);
 
 /**
  * Allocate a block of memory from the free list that was
@@ -184,11 +203,11 @@ extern void *cvmx_bootmem_alloc_node(uint64_t node, uint64_t size,
  * freeing memory is not possible. Allocation will fail if
  * memory cannot be allocated at the specified address.
  *
- * @size:      Size in bytes of block to allocate
- * @address:   Physical address to allocate memory at.  If this
+ * @param size      Size in bytes of block to allocate
+ * @param address   Physical address to allocate memory at.  If this
  *                  memory is not available, the allocation fails.
- * @alignment: Alignment required - must be power of 2
- * Returns pointer to block of memory, NULL on error
+ * @param alignment Alignment required - must be power of 2
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc_address(uint64_t size, uint64_t address,
 					uint64_t alignment);
@@ -200,29 +219,11 @@ extern void *cvmx_bootmem_alloc_address(uint64_t size, uint64_t address,
  * freeing memory is not possible. Allocation will fail if
  * memory cannot be allocated in the requested range.
  *
- * @size:      Size in bytes of block to allocate
- * @min_addr:  defines the minimum address of the range
- * @max_addr:  defines the maximum address of the range
- * @alignment: Alignment required - must be power of 2
- * @flags:     Flags to control options for the allocation.
- * Returns pointer to block of memory, NULL on error
- */
-extern void *cvmx_bootmem_alloc_range_flags(uint64_t size, uint64_t alignment,
-					    uint64_t min_addr,
-					    uint64_t max_addr, uint32_t flags);
-
-/**
- * Allocate a block of memory from the free list that was
- * passed to the application by the bootloader within a specified
- * address range. This is an allocate-only algorithm, so
- * freeing memory is not possible. Allocation will fail if
- * memory cannot be allocated in the requested range.
- *
- * @size:      Size in bytes of block to allocate
- * @min_addr:  defines the minimum address of the range
- * @max_addr:  defines the maximum address of the range
- * @alignment: Alignment required - must be power of 2
- * Returns pointer to block of memory, NULL on error
+ * @param size      Size in bytes of block to allocate
+ * @param min_addr  defines the minimum address of the range
+ * @param max_addr  defines the maximum address of the range
+ * @param alignment Alignment required - must be power of 2
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc_range(uint64_t size, uint64_t alignment,
 				      uint64_t min_addr, uint64_t max_addr);
@@ -233,11 +234,11 @@ extern void *cvmx_bootmem_alloc_range(uint64_t size, uint64_t alignment,
  * global named block table.  (part of the cvmx_bootmem_descriptor_t structure)
  * Named blocks can later be freed.
  *
- * @size:  Size in bytes of block to allocate
- * @alignment: Alignment required - must be power of 2
- * @name:  name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
+ * @param size  Size in bytes of block to allocate
+ * @param alignment Alignment required - must be power of 2
+ * @param name  name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
  *
- * Returns pointer to block of memory, NULL on error
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc_named(uint64_t size, uint64_t alignment,
 				      const char *name);
@@ -248,12 +249,12 @@ extern void *cvmx_bootmem_alloc_named(uint64_t size, uint64_t alignment,
  * global named block table.  (part of the cvmx_bootmem_descriptor_t structure)
  * Named blocks can later be freed.
  *
- * @size: Size in bytes of block to allocate
- * @alignment: Alignment required - must be power of 2
- * @name: name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
- * @flags:     Flags to control options for the allocation.
+ * @param size Size in bytes of block to allocate
+ * @param alignment Alignment required - must be power of 2
+ * @param name name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
+ * @param flags     Flags to control options for the allocation.
  *
- * Returns pointer to block of memory, NULL on error
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc_named_flags(uint64_t size, uint64_t alignment,
 					    const char *name, uint32_t flags);
@@ -264,12 +265,12 @@ extern void *cvmx_bootmem_alloc_named_flags(uint64_t size, uint64_t alignment,
  * global named block table.  (part of the cvmx_bootmem_descriptor_t structure)
  * Named blocks can later be freed.
  *
- * @size:    Size in bytes of block to allocate
- * @address: Physical address to allocate memory at.  If this
+ * @param size    Size in bytes of block to allocate
+ * @param address Physical address to allocate memory at.  If this
  *                memory is not available, the allocation fails.
- * @name:    name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
+ * @param name    name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
  *
- * Returns pointer to block of memory, NULL on error
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc_named_address(uint64_t size, uint64_t address,
 					      const char *name);
@@ -282,71 +283,17 @@ extern void *cvmx_bootmem_alloc_named_address(uint64_t size, uint64_t address,
  * freed.  If request cannot be satisfied within the address range
  * specified, NULL is returned
  *
- * @size:      Size in bytes of block to allocate
- * @min_addr:  minimum address of range
- * @max_addr:  maximum address of range
- * @align:  Alignment of memory to be allocated. (must be a power of 2)
- * @name:   name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
+ * @param size      Size in bytes of block to allocate
+ * @param min_addr  minimum address of range
+ * @param max_addr  maximum address of range
+ * @param align  Alignment of memory to be allocated. (must be a power of 2)
+ * @param name   name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
  *
- * Returns pointer to block of memory, NULL on error
+ * @return pointer to block of memory, NULL on error
  */
 extern void *cvmx_bootmem_alloc_named_range(uint64_t size, uint64_t min_addr,
 					    uint64_t max_addr, uint64_t align,
 					    const char *name);
-
-/**
- * Allocate if needed a block of memory from a specific range of the
- * free list that was passed to the application by the bootloader, and
- * assign it a name in the global named block table.  (part of the
- * cvmx_bootmem_descriptor_t structure) Named blocks can later be
- * freed.  If the requested name block is already allocated, return
- * the pointer to block of memory.  If request cannot be satisfied
- * within the address range specified, NULL is returned
- *
- * @size:   Size in bytes of block to allocate
- * @min_addr:  minimum address of range
- * @max_addr:  maximum address of range
- * @align:  Alignment of memory to be allocated. (must be a power of 2)
- * @name:   name of block - must be less than CVMX_BOOTMEM_NAME_LEN bytes
- * @init:   Initialization function
- *
- * The initialization function is optional, if omitted the named block
- * is initialized to all zeros when it is created, i.e. once.
- *
- * Returns pointer to block of memory, NULL on error
- */
-void *cvmx_bootmem_alloc_named_range_once(uint64_t size,
-					  uint64_t min_addr,
-					  uint64_t max_addr,
-					  uint64_t align,
-					  const char *name,
-					  void (*init) (void *));
-
-/**
- * Allocate all free memory starting at the start address.  This is used to
- * prevent any free blocks from later being allocated within the reserved space.
- * Note that any memory allocated with this function cannot be later freed.
- *
- * @start_addr:  Starting address to reserve
- * @size:        Size in bytes to reserve starting at start_addr
- * @name:        Name to assign to reserved blocks
- * @flags:       Flags to use when reserving memory
- *
- * Returns 0 on failure,
- *         !0 on success
- */
-extern int cvmx_bootmem_reserve_memory(uint64_t start_addr, uint64_t size,
-				       const char *name, uint32_t flags);
-
-/**
- * Frees a previously allocated named bootmem block.
- *
- * @name:   name of block to free
- *
- * Returns 0 on failure,
- *         !0 on success
- */
-extern int cvmx_bootmem_free_named(const char *name);
 
 /**
  * Allocate if needed a block of memory from a specific range of the
@@ -373,31 +320,55 @@ void *cvmx_bootmem_alloc_named_range_once(uint64_t size,
 					  uint64_t min_addr,
 					  uint64_t max_addr,
 					  uint64_t align,
-					  char *name,
+					  const char *name,
 					  void (*init) (void *));
 
-extern int cvmx_bootmem_free_named(char *name);
+/**
+ * Allocate all free memory starting at the start address.  This is used to
+ * prevent any free blocks from later being allocated within the reserved space.
+ * Note that any memory allocated with this function cannot be later freed.
+ *
+ * @param start_addr  Starting address to reserve
+ * @param size        Size in bytes to reserve starting at start_addr
+ * @param name        Name to assign to reserved blocks
+ * @param flags       Flags to use when reserving memory
+ *
+ * @return 0 on failure,
+ *         !0 on success
+ */
+extern int cvmx_bootmem_reserve_memory(uint64_t start_addr, uint64_t size,
+				       const char *name, uint32_t flags);
+
+/**
+ * Frees a previously allocated named bootmem block.
+ *
+ * @param name   name of block to free
+ *
+ * @return 0 on failure,
+ *         !0 on success
+ */
+extern int cvmx_bootmem_free_named(const char *name);
+
 
 /**
  * Finds a named bootmem block by name.
  *
- * @name:   name of block to free
+ * @param name   name of block to free
  *
- * Returns pointer to named block descriptor on success
+ * @return pointer to named block descriptor on success
  *         0 on failure
  */
-const cvmx_bootmem_named_block_desc_t *cvmx_bootmem_find_named_block(const char
-								     *name);
+const cvmx_bootmem_named_block_desc_t *cvmx_bootmem_find_named_block(const char *name);
 
 /**
  * Returns the size of available memory in bytes, only
  * counting blocks that are at least as big as the minimum block
  * size.
  *
- * @min_block_size:
+ * @param min_block_size
  *               Minimum block size to count in total.
  *
- * Returns Number of bytes available for allocation that meet the
+ * @return Number of bytes available for allocation that meet the
  * block size requirement
  */
 uint64_t cvmx_bootmem_available_mem(uint64_t min_block_size);
@@ -413,24 +384,24 @@ void cvmx_bootmem_print_named(void);
  * Allocates a block of physical memory from the free list, at
  * (optional) requested address and alignment.
  *
- * @req_size: size of region to allocate.  All requests are
+ * @param req_size size of region to allocate.  All requests are
  * rounded up to be a multiple CVMX_BOOTMEM_ALIGNMENT_SIZE bytes size
  *
- * @address_min: Minimum address that block can occupy.
+ * @param address_min Minimum address that block can occupy.
  *
- * @address_max: Specifies the maximum address_min (inclusive)
+ * @param address_max Specifies the maximum address_min (inclusive)
  * that the allocation can use.
  *
- * @alignment: Requested alignment of the block.  If this
+ * @param alignment Requested alignment of the block.  If this
  *                  alignment cannot be met, the allocation fails.
  *                  This must be a power of 2.  (Note: Alignment of
  *                  CVMX_BOOTMEM_ALIGNMENT_SIZE bytes is required, and
  *                  internally enforced.  Requested alignments of less
  *                  than CVMX_BOOTMEM_ALIGNMENT_SIZE are set to
  *                  CVMX_BOOTMEM_ALIGNMENT_SIZE.)
- * @flags:     Flags to control options for the allocation.
+ * @param flags     Flags to control options for the allocation.
  *
- * Returns physical address of block allocated, or -1 on failure
+ * @return physical address of block allocated, or -1 on failure
  */
 int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
 			       uint64_t address_max, uint64_t alignment,
@@ -440,15 +411,15 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
  * Allocates a named block of physical memory from the free list, at
  * (optional) requested address and alignment.
  *
- * @size: size of region to allocate.  All requests are rounded
+ * @param size size of region to allocate.  All requests are rounded
  * up to be a multiple CVMX_BOOTMEM_ALIGNMENT_SIZE bytes size
  *
- * @min_addr:  Minimum address that block can occupy.
+ * @param min_addr  Minimum address that block can occupy.
  *
- * @max_addr: Specifies the maximum address_min (inclusive) that
+ * @param max_addr Specifies the maximum address_min (inclusive) that
  * the allocation can use.
  *
- * @alignment: Requested alignment of the block.  If this
+ * @param alignment Requested alignment of the block.  If this
  *                  alignment cannot be met, the allocation fails.
  *                  This must be a power of 2.  (Note: Alignment of
  *                  CVMX_BOOTMEM_ALIGNMENT_SIZE bytes is required, and
@@ -456,11 +427,11 @@ int64_t cvmx_bootmem_phy_alloc(uint64_t req_size, uint64_t address_min,
  *                  than CVMX_BOOTMEM_ALIGNMENT_SIZE are set to
  *                  CVMX_BOOTMEM_ALIGNMENT_SIZE.)
  *
- * @name:      name to assign to named block
+ * @param name      name to assign to named block
  *
- * @flags:     Flags to control options for the allocation.
+ * @param flags     Flags to control options for the allocation.
  *
- * Returns physical address of block allocated, or -1 on failure
+ * @return physical address of block allocated, or -1 on failure
  */
 int64_t cvmx_bootmem_phy_named_block_alloc(uint64_t size, uint64_t min_addr,
 					   uint64_t max_addr,
@@ -471,12 +442,12 @@ int64_t cvmx_bootmem_phy_named_block_alloc(uint64_t size, uint64_t min_addr,
  * Finds a named memory block by name.
  * Also used for finding an unused entry in the named block table.
  *
- * @name: Name of memory block to find.  If NULL pointer given,
+ * @param name Name of memory block to find.  If NULL pointer given,
  *             then finds unused descriptor, if available.
  *
- * @flags:  Flags to control options for the allocation.
+ * @param flags  Flags to control options for the allocation.
  *
- * Returns Physical address of the memory block descriptor, zero if not
+ * @return Physical address of the memory block descriptor, zero if not
  *         found. If zero returned when name parameter is NULL, then no
  *         memory block descriptors are available.
  */
@@ -487,10 +458,10 @@ uint64_t cvmx_bootmem_phy_named_block_find(const char *name, uint32_t flags);
  * counting blocks that are at least as big as the minimum block
  * size.
  *
- * @min_block_size:
+ * @param min_block_size
  *               Minimum block size to count in total.
  *
- * Returns Number of bytes available for allocation that meet the
+ * @return Number of bytes available for allocation that meet the
  * block size requirement
  */
 uint64_t cvmx_bootmem_phy_available_mem(uint64_t min_block_size);
@@ -498,10 +469,10 @@ uint64_t cvmx_bootmem_phy_available_mem(uint64_t min_block_size);
 /**
  * Frees a named block.
  *
- * @name:   name of block to free
- * @flags:  flags for passing options
+ * @param name   name of block to free
+ * @param flags  flags for passing options
  *
- * Returns 0 on failure
+ * @return 0 on failure
  *         1 on success
  */
 int cvmx_bootmem_phy_named_block_free(const char *name, uint32_t flags);
@@ -516,11 +487,11 @@ int cvmx_bootmem_phy_named_block_free(const char *name, uint32_t flags);
  * frees and initial population of the free memory list.
  *                                                      *
  *
- * @phy_addr: physical address of block
- * @size:     size of block in bytes.
- * @flags:    flags for passing options
+ * @param phy_addr physical address of block
+ * @param size     size of block in bytes.
+ * @param flags    flags for passing options
  *
- * Returns 1 on success,
+ * @return 1 on success,
  *         0 on failure
  */
 int __cvmx_bootmem_phy_free(uint64_t phy_addr, uint64_t size, uint32_t flags);
@@ -538,18 +509,30 @@ void cvmx_bootmem_phy_named_block_print(void);
 void cvmx_bootmem_phy_list_print(void);
 
 /**
+ * Saves the initial list of available memory,
+ * so that it can be restored for kexec.
+ */
+void cvmx_bootmem_phy_list_save(void);
+
+/**
+ * Restores the initial list of available memory
+ * that was saved by cvmx_bootmem_phy_list_save()
+ */
+	void cvmx_bootmem_phy_list_restore(void);
+
+/**
  * This function initializes the free memory list used by cvmx_bootmem.
  * This must be called before any allocations can be done.
  *
- * @mem_size: Total memory available, in bytes
+ * @param mem_size Total memory available, in bytes
  *
- * @low_reserved_bytes: Number of bytes to reserve (leave out of
+ * @param low_reserved_bytes Number of bytes to reserve (leave out of
  * free list) at address 0x0.
  *
- * @desc_buffer: Buffer for the bootmem descriptor.  This must be
+ * @param desc_buffer Buffer for the bootmem descriptor.  This must be
  *                 a 32 bit addressable address.
  *
- * Returns 1 on success
+ * @return 1 on success
  *         0 on failure
  */
 int64_t cvmx_bootmem_phy_mem_list_init(uint64_t mem_size,
@@ -560,23 +543,23 @@ int64_t cvmx_bootmem_phy_mem_list_init(uint64_t mem_size,
  * This function initializes the free memory list used by cvmx_bootmem.
  * This must be called before any allocations can be done.
  *
- * @nodemask: Nodemask - one bit per node (bit0->node0, bit1->node1,...)
+ * @param nodemask Nodemask - one bit per node (bit0->node0, bit1->node1,...)
  *
- * @mem_size[]: Array of memory sizes in MBytes per node ([0]->node0,...)
+ * @param mem_size[] Array of memory sizes in MBytes per node ([0]->node0,...)
  *
- * @low_reserved_bytes: Number of bytes to reserve (leave out of
+ * @param low_reserved_bytes Number of bytes to reserve (leave out of
  * free list) at address 0x0.
  *
- * @desc_buffer: Buffer for the bootmem descriptor.  This must be
+ * @param desc_buffer Buffer for the bootmem descriptor.  This must be
  *                 a 32 bit addressable address.
  *
- * Returns 1 on success
+ * @return 1 on success
  *         0 on failure
  */
 int64_t cvmx_bootmem_phy_mem_list_init_multi(uint8_t nodemask,
-					     uint32_t mem_size[],
-					     uint32_t low_reserved_bytes,
-					     cvmx_bootmem_desc_t * desc_buffer);
+				       uint32_t mem_size[],
+				       uint32_t low_reserved_bytes,
+				       cvmx_bootmem_desc_t * desc_buffer);
 /**
  * Locks the bootmem allocator.  This is useful in certain situations
  * where multiple allocations must be made without being interrupted.
@@ -605,11 +588,16 @@ void *__cvmx_bootmem_internal_get_desc_ptr(void);
  * returned.
  */
 void *__cvmx_phys_addr_to_ptr(uint64_t phys, int size);
-const cvmx_bootmem_named_block_desc_t
-    *__cvmx_bootmem_find_named_block_flags(const char *name, uint32_t flags);
+const cvmx_bootmem_named_block_desc_t *
+__cvmx_bootmem_find_named_block_flags(const char *name, uint32_t flags);
 void *cvmx_bootmem_alloc_named_range_flags(uint64_t size, uint64_t min_addr,
 					   uint64_t max_addr, uint64_t align,
 					   const char *name, uint32_t flags);
 uint64_t cvmx_bootmem_phy_alloc_range(uint64_t size, uint64_t alignment,
 				      uint64_t min_addr, uint64_t max_addr);
+#ifdef	__cplusplus
+/* *INDENT-OFF* */
+}
+/* *INDENT-ON* */
+#endif
 #endif /*   __CVMX_BOOTMEM_H__ */

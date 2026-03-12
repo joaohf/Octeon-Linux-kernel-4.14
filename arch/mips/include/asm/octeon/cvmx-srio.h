@@ -1,28 +1,40 @@
 /***********************license start***************
- * Author: Cavium Inc.
+ * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * reserved.
  *
- * Contact: support@cavium.com
- * This file is part of the OCTEON SDK
  *
- * Copyright (c) 2003-2010 Cavium Inc.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
  *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, Version 2, as
- * published by the Free Software Foundation.
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
  *
- * This file is distributed in the hope that it will be useful, but
- * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
- * NONINFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this file; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- * or visit http://www.gnu.org/licenses/.
- *
- * This file may also be available under a different license from Cavium.
- * Contact Cavium Inc. for more information
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+
+ *   * Neither the name of Cavium Inc. nor the names of
+ *     its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+
+ * This Software, including technical data, may be subject to U.S. export  control
+ * laws, including the U.S. Export Administration Act and its  associated
+ * regulations, and may be subject to export or import  regulations in other
+ * countries.
+
+ * TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED "AS IS"
+ * AND WITH ALL FAULTS AND CAVIUM INC. MAKES NO PROMISES, REPRESENTATIONS OR
+ * WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH RESPECT TO
+ * THE SOFTWARE, INCLUDING ITS CONDITION, ITS CONFORMITY TO ANY REPRESENTATION OR
+ * DESCRIPTION, OR THE EXISTENCE OF ANY LATENT OR PATENT DEFECTS, AND CAVIUM
+ * SPECIFICALLY DISCLAIMS ALL IMPLIED (IF ANY) WARRANTIES OF TITLE,
+ * MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF
+ * VIRUSES, ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. THE ENTIRE  RISK ARISING OUT OF USE OR
+ * PERFORMANCE OF THE SOFTWARE LIES WITH YOU.
  ***********************license end**************************************/
 
 /**
@@ -30,10 +42,17 @@
  *
  * Interface to SRIO
  *
+ * <hr>$Revision: 41586 $<hr>
  */
 
 #ifndef __CVMX_SRIO_H__
 #define __CVMX_SRIO_H__
+
+#ifdef	__cplusplus
+/* *INDENT-OFF* */
+extern "C" {
+/* *INDENT-ON* */
+#endif
 
 /**
  * Enumeration of the type of operations that can be performed
@@ -393,121 +412,110 @@ typedef union cvmx_srio_tx_message_header {
 /**
  * Reset SRIO to link partner
  *
- * @srio_port:  SRIO port to initialize
+ * @param srio_port  SRIO port to initialize
  *
- * Returns Zero on success
+ * @return Zero on success
  */
 int cvmx_srio_link_rst(int srio_port);
 
 /**
  * Initialize a SRIO port for use.
  *
- * @srio_port: SRIO port to initialize
- * @flags:     Optional flags
+ * @param srio_port SRIO port to initialize
+ * @param flags     Optional flags
  *
- * Returns Zero on success
+ * @return Zero on success
  */
 int cvmx_srio_initialize(int srio_port, cvmx_srio_initialize_flags_t flags);
 
 /**
  * Read 32bits from a Device's config space
  *
- * @srio_port: SRIO port the device is on
- * @srcid_index:
+ * @param srio_port SRIO port the device is on
+ * @param srcid_index
  *                  Which SRIO source ID to use. 0 = Primary, 1 = Secondary
- * @destid:    RapidIO device ID, or -1 for the local Octeon.
- * @is16bit:   Non zero if the transactions should use 16bit device IDs. Zero
+ * @param destid    RapidIO device ID, or -1 for the local Octeon.
+ * @param is16bit   Non zero if the transactions should use 16bit device IDs. Zero
  *                  if transactions should use 8bit device IDs.
- * @hopcount:  Number of hops to the remote device. Use 0 for the local Octeon.
- * @offset:    Offset in config space. This must be a multiple of 32 bits.
- * @result:    Result of the read. This will be unmodified on failure.
+ * @param hopcount  Number of hops to the remote device. Use 0 for the local Octeon.
+ * @param offset    Offset in config space. This must be a multiple of 32 bits.
+ * @param result    Result of the read. This will be unmodified on failure.
  *
- * Returns Zero on success, negative on failure.
+ * @return Zero on success, negative on failure.
  */
-int cvmx_srio_config_read32(int srio_port, int srcid_index, int destid,
-			    int is16bit, uint8_t hopcount, uint32_t offset,
-			    uint32_t * result);
+int cvmx_srio_config_read32(int srio_port, int srcid_index, int destid, int is16bit, uint8_t hopcount, uint32_t offset, uint32_t * result);
 
 /**
  * Write 32bits to a Device's config space
  *
- * @srio_port: SRIO port the device is on
- * @srcid_index:
+ * @param srio_port SRIO port the device is on
+ * @param srcid_index
  *                  Which SRIO source ID to use. 0 = Primary, 1 = Secondary
- * @destid:    RapidIO device ID, or -1 for the local Octeon.
- * @is16bit:   Non zero if the transactions should use 16bit device IDs. Zero
+ * @param destid    RapidIO device ID, or -1 for the local Octeon.
+ * @param is16bit   Non zero if the transactions should use 16bit device IDs. Zero
  *                  if transactions should use 8bit device IDs.
- * @hopcount:  Number of hops to the remote device. Use 0 for the local Octeon.
- * @offset:    Offset in config space. This must be a multiple of 32 bits.
- * @data:      Data to write.
+ * @param hopcount  Number of hops to the remote device. Use 0 for the local Octeon.
+ * @param offset    Offset in config space. This must be a multiple of 32 bits.
+ * @param data      Data to write.
  *
- * Returns Zero on success, negative on failure.
+ * @return Zero on success, negative on failure.
  */
-int cvmx_srio_config_write32(int srio_port, int srcid_index, int destid,
-			     int is16bit, uint8_t hopcount, uint32_t offset,
-			     uint32_t data);
+int cvmx_srio_config_write32(int srio_port, int srcid_index, int destid, int is16bit, uint8_t hopcount, uint32_t offset, uint32_t data);
 
 /**
  * Send a RapidIO doorbell to a remote device
  *
- * @srio_port: SRIO port the device is on
- * @srcid_index:
+ * @param srio_port SRIO port the device is on
+ * @param srcid_index
  *                  Which SRIO source ID to use. 0 = Primary, 1 = Secondary
- * @destid:    RapidIO device ID.
- * @is16bit:   Non zero if the transactions should use 16bit device IDs. Zero
+ * @param destid    RapidIO device ID.
+ * @param is16bit   Non zero if the transactions should use 16bit device IDs. Zero
  *                  if transactions should use 8bit device IDs.
- * @priority:  Doorbell priority (0-3)
- * @data:      Data for doorbell.
+ * @param priority  Doorbell priority (0-3)
+ * @param data      Data for doorbell.
  *
- * Returns Zero on success, negative on failure.
+ * @return Zero on success, negative on failure.
  */
-int cvmx_srio_send_doorbell(int srio_port, int srcid_index, int destid,
-			    int is16bit, int priority, uint16_t data);
+int cvmx_srio_send_doorbell(int srio_port, int srcid_index, int destid, int is16bit, int priority, uint16_t data);
 
 /**
  * Get the status of the last doorbell sent. If the dooorbell
  * hardware is done, then the status is cleared to get ready for
  * the next doorbell (or retry).
  *
- * @srio_port: SRIO port to check doorbell on
+ * @param srio_port SRIO port to check doorbell on
  *
- * Returns Doorbell status
+ * @return Doorbell status
  */
 cvmx_srio_doorbell_status_t cvmx_srio_send_doorbell_status(int srio_port);
 
 /**
  * Read a received doorbell and report data about it.
  *
- * @srio_port: SRIO port to check for the received doorbell
- * @destid_index:
+ * @param srio_port SRIO port to check for the received doorbell
+ * @param destid_index
  *                  Which Octeon destination ID was the doorbell for
- * @sequence_num:
+ * @param sequence_num
  *                  Sequence number of doorbell (32bits)
- * @srcid:     RapidIO source ID of the doorbell sender
- * @priority:  Priority of the doorbell (0-3)
- * @is16bit:   Non zero if the transactions should use 16bit device IDs. Zero
+ * @param srcid     RapidIO source ID of the doorbell sender
+ * @param priority  Priority of the doorbell (0-3)
+ * @param is16bit   Non zero if the transactions should use 16bit device IDs. Zero
  *                  if transactions should use 8bit device IDs.
- * @data:      Data in the doorbell (16 bits)
+ * @param data      Data in the doorbell (16 bits)
  *
- * Returns Doorbell status. Either DONE, NONE, or ERROR.
+ * @return Doorbell status. Either DONE, NONE, or ERROR.
  */
-cvmx_srio_doorbell_status_t cvmx_srio_receive_doorbell(int srio_port,
-						       int *destid_index,
-						       uint32_t * sequence_num,
-						       int *srcid,
-						       int *priority,
-						       int *is16bit,
-						       uint16_t * data);
+cvmx_srio_doorbell_status_t cvmx_srio_receive_doorbell(int srio_port, int *destid_index, uint32_t * sequence_num, int *srcid, int *priority, int *is16bit, uint16_t * data);
 
 /**
  * Receive a packet from the Soft Packet FIFO (SPF).
  *
- * @srio_port: SRIO port to read the packet from.
- * @buffer:    Buffer to receive the packet.
- * @buffer_length:
+ * @param srio_port SRIO port to read the packet from.
+ * @param buffer    Buffer to receive the packet.
+ * @param buffer_length
  *                  Length of the buffer in bytes.
  *
- * Returns Returns the length of the packet read. Negative on failure.
+ * @return Returns the length of the packet read. Negative on failure.
  *         Zero if no packets are available.
  */
 int cvmx_srio_receive_spf(int srio_port, void *buffer, int buffer_length);
@@ -517,59 +525,82 @@ int cvmx_srio_receive_spf(int srio_port, void *buffer, int buffer_length);
  * address area. The caller can then map this into a core using
  * the TLB or XKPHYS.
  *
- * @srio_port: SRIO port to map the device on
- * @write_op:  Type of operation to perform on a write to the device.
+ * @param srio_port SRIO port to map the device on
+ * @param write_op  Type of operation to perform on a write to the device.
  *                  Normally should be CVMX_SRIO_WRITE_MODE_AUTO.
- * @write_priority:
+ * @param write_priority
  *                  SRIO priority of writes (0-3)
- * @read_op:   Type of operation to perform on reads to the device.
+ * @param read_op   Type of operation to perform on reads to the device.
  *                  Normally should be CVMX_SRIO_READ_MODE_NORMAL.
- * @read_priority:
+ * @param read_priority
  *                  SRIO priority of reads (0-3)
- * @srcid_index:
+ * @param srcid_index
  *                  Which SRIO source ID to use. 0 = Primary, 1 = Secondary
- * @destid:    RapidIO device ID.
- * @is16bit:   Non zero if the transactions should use 16bit device IDs. Zero
+ * @param destid    RapidIO device ID.
+ * @param is16bit   Non zero if the transactions should use 16bit device IDs. Zero
  *                  if transactions should use 8bit device IDs.
- * @base:      Device base address to start the mapping
- * @size:      Size of the mapping in bytes
+ * @param base      Device base address to start the mapping
+ * @param size      Size of the mapping in bytes
  *
- * Returns Octeon 64bit physical address that accesses the remote device,
+ * @return Octeon 64bit physical address that accesses the remote device,
  *         or zero on failure.
  */
 uint64_t cvmx_srio_physical_map(int srio_port, cvmx_srio_write_mode_t write_op,
-				int write_priority,
-				cvmx_srio_read_mode_t read_op,
-				int read_priority, int srcid_index, int destid,
-				int is16bit, uint64_t base, uint64_t size);
+				int write_priority, cvmx_srio_read_mode_t read_op, int read_priority, int srcid_index, int destid, int is16bit, uint64_t base, uint64_t size);
 
 /**
  * Unmap a physical address window created by cvmx_srio_phys_map().
  *
- * @physical_address:
+ * @param physical_address
  *               Physical address returned by cvmx_srio_phys_map().
- * @size:   Size used on original call.
+ * @param size   Size used on original call.
  *
- * Returns Zero on success, negative on failure.
+ * @return Zero on success, negative on failure.
  */
 int cvmx_srio_physical_unmap(uint64_t physical_address, uint64_t size);
 
-#if 0
 /**
  * fill out outbound message descriptor
  *
- * @buf_ptr:     pointer to a buffer pointer. the buffer pointer points
+ * @param buf_ptr     pointer to a buffer pointer. the buffer pointer points
  *                    to a chain of buffers that hold an outbound srio packet.
  *                    the packet can take the format of (1) a pip/ipd inbound
  *                    message or (2) an application-generated outbound message
- * @desc_ptr:    pointer to an outbound message descriptor. should be null
+ * @param desc_ptr    pointer to an outbound message descriptor. should be null
  *                    if *buf_ptr is in the format (1)
  *
- * Returns           0 on success; negative of failure.
+ * @return           0 on success; negative of failure.
  */
-int cvmx_srio_omsg_desc(uint64_t port, cvmx_buf_ptr_t * buf_ptr,
-			cvmx_srio_tx_message_header_t * desc_ptr);
+int cvmx_srio_omsg_desc(uint64_t port, cvmx_buf_ptr_t * buf_ptr, cvmx_srio_tx_message_header_t * desc_ptr);
 
+extern void cvmx_srio_set_pkind(int srio_link, int index,int pkind);
 
+/**
+ * Convert an ipd port number to its sRIO link number per SoC model.
+ *
+ * @param ipd_port Ipd port number to convert
+ *
+ * @return Srio link number
+ */
+extern int cvmx_srio_ipd2srio(int ipd_port);
+
+/**
+ * Get our device ID
+ *
+ * @return Device ID, or negative number on error
+ */
+extern int cvmx_srio_get_did(int srio_port);
+
+/**
+ * Set our device ID
+ *
+ * @return Device ID, or negative number on error
+ */
+extern int cvmx_srio_set_did(int srio_port, int did);
+
+#ifdef	__cplusplus
+/* *INDENT-OFF* */
+}
+/* *INDENT-ON* */
 #endif
 #endif

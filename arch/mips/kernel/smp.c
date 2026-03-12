@@ -48,7 +48,7 @@
 #include <asm/setup.h>
 #include <asm/maar.h>
 
-int __cpu_number_map[NR_CPUS];		/* Map physical to logical */
+int __cpu_number_map[CONFIG_MIPS_NR_CPU_NR_MAP];		/* Map physical to logical */
 EXPORT_SYMBOL(__cpu_number_map);
 
 int __cpu_logical_map[NR_CPUS];		/* Map logical to physical */
@@ -656,6 +656,23 @@ void flush_tlb_one(unsigned long vaddr)
 
 EXPORT_SYMBOL(flush_tlb_page);
 EXPORT_SYMBOL(flush_tlb_one);
+
+#if defined(CONFIG_KEXEC)
+void (*dump_ipi_function_ptr)(void *) = NULL;
+void dump_send_ipi(void (*dump_ipi_callback)(void *))
+{
+	int i;
+	int cpu = smp_processor_id();
+
+	dump_ipi_function_ptr = dump_ipi_callback;
+	smp_mb();
+	for_each_online_cpu(i)
+		if (i != cpu)
+			mp_ops->send_ipi_single(i, SMP_DUMP);
+
+}
+EXPORT_SYMBOL(dump_send_ipi);
+#endif
 
 #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
 

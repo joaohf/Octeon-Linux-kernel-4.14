@@ -39,7 +39,7 @@ static inline int raw_smp_processor_id(void)
 
 /* Map from cpu id to sequential logical cpu number.  This will only
    not be idempotent when cpus failed to come on-line.	*/
-extern int __cpu_number_map[NR_CPUS];
+extern int __cpu_number_map[CONFIG_MIPS_NR_CPU_NR_MAP];
 #define cpu_number_map(cpu)  __cpu_number_map[cpu]
 
 /* The reverse map from sequential logical cpu number to cpu id.  */
@@ -52,7 +52,9 @@ extern int __cpu_logical_map[NR_CPUS];
 #define SMP_CALL_FUNCTION	0x2
 /* Octeon - Tell another core to flush its icache */
 #define SMP_ICACHE_FLUSH	0x4
-#define SMP_ASK_C0COUNT		0x8
+/* Used by kexec crashdump to save all cpu's state */
+#define SMP_DUMP		0x8
+#define SMP_ASK_C0COUNT		0x10
 
 /* Mask of CPUs which are currently definitely operating coherently */
 extern cpumask_t cpu_coherent_mask;
@@ -119,4 +121,8 @@ static inline void arch_send_call_function_ipi_mask(const struct cpumask *mask)
 	mp_ops->send_ipi_mask(mask, SMP_CALL_FUNCTION);
 }
 
+#if defined(CONFIG_KEXEC)
+extern void (*dump_ipi_function_ptr)(void *);
+void dump_send_ipi(void (*dump_ipi_callback)(void *));
+#endif
 #endif /* __ASM_SMP_H */

@@ -77,6 +77,17 @@ struct mips_perf_event {
 #endif
 };
 
+static ATOMIC_NOTIFIER_HEAD(mipsxx_pmu_chain);
+int mipspmu_notifier_register(struct notifier_block *nb)
+{
+	return atomic_notifier_chain_register(&mipsxx_pmu_chain, nb);
+}
+
+int mipspmu_notifier_unregister(struct notifier_block *nb)
+{
+	return atomic_notifier_chain_unregister(&mipsxx_pmu_chain, nb);
+}
+
 static struct mips_perf_event raw_event;
 static DEFINE_MUTEX(raw_event_mutex);
 
@@ -164,7 +175,7 @@ static unsigned int counters_total_to_per_cpu(unsigned int counters)
 
 #endif /* CONFIG_MIPS_PERF_SHARED_TC_COUNTERS */
 
-static void resume_local_counters(void);
+static int resume_local_counters(void);
 static void pause_local_counters(void);
 static irqreturn_t mipsxx_pmu_handle_irq(int, void *);
 static int mipsxx_pmu_handle_shared_irq(void);
@@ -511,10 +522,12 @@ static void mipspmu_read(struct perf_event *event)
 
 static void mipspmu_enable(struct pmu *pmu)
 {
+	int i;
 #ifdef CONFIG_MIPS_PERF_SHARED_TC_COUNTERS
 	write_unlock(&pmuint_rwlock);
 #endif
-	resume_local_counters();
+	i = resume_local_counters();
+	atomic_notifier_call_chain(&mipsxx_pmu_chain, i ? MIPSPMU_ACTIVE : MIPSPMU_INACTIVE, NULL);
 }
 
 /*
@@ -793,6 +806,7 @@ static void reset_counters(void *arg)
 		mipsxx_pmu_write_control(0, 0);
 		mipspmu.write_counter(0, 0);
 	}
+	atomic_notifier_call_chain(&mipsxx_pmu_chain, MIPSPMU_INACTIVE, NULL);
 }
 
 /* 24K/34K/1004K/interAptiv/loongson1 cores share the same event map. */
@@ -1391,15 +1405,19 @@ static void pause_local_counters(void)
 	local_irq_restore(flags);
 }
 
-static void resume_local_counters(void)
+static int resume_local_counters(void)
 {
+	int r = 0;
 	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
 	int ctr = mipspmu.num_counters;
 
 	do {
 		ctr--;
 		mipsxx_pmu_write_control(ctr, cpuc->saved_ctrl[ctr]);
+		r += (cpuc->saved_ctrl[ctr] & MIPS_PERFCTRL_IE) != 0;
 	} while (ctr > 0);
+
+	return r;
 }
 
 static int mipsxx_pmu_handle_shared_irq(void)
@@ -1663,14 +1681,15 @@ static const struct mips_perf_event *mipsxx_pmu_map_raw_event(u64 config)
 
 static const struct mips_perf_event *octeon_pmu_map_raw_event(u64 config)
 {
-	unsigned int raw_id = config & 0xff;
-	unsigned int base_id = raw_id & 0x7f;
-
+	unsigned int base_id = config & 0x7f;
 
 	raw_event.cntr_mask = CNTR_ALL;
 	raw_event.event_id = base_id;
 
-	if (current_cpu_type() == CPU_CAVIUM_OCTEON2) {
+	if (current_cpu_type() == CPU_CAVIUM_OCTEON3) {
+		if (base_id > 0x5f)
+			return ERR_PTR(-EOPNOTSUPP);
+	} else if (current_cpu_type() == CPU_CAVIUM_OCTEON2) {
 		if (base_id > 0x42)
 			return ERR_PTR(-EOPNOTSUPP);
 	} else {
@@ -1685,7 +1704,6 @@ static const struct mips_perf_event *octeon_pmu_map_raw_event(u64 config)
 	case 0x1f:
 	case 0x2f:
 	case 0x34:
-	case 0x3b ... 0x3f:
 		return ERR_PTR(-EOPNOTSUPP);
 	default:
 		break;
@@ -1806,6 +1824,7 @@ init_hw_perf_events(void)
 	case CPU_CAVIUM_OCTEON:
 	case CPU_CAVIUM_OCTEON_PLUS:
 	case CPU_CAVIUM_OCTEON2:
+	case CPU_CAVIUM_OCTEON3:
 		mipspmu.name = "octeon";
 		mipspmu.general_event_map = &octeon_event_map;
 		mipspmu.cache_event_map = &octeon_cache_map;

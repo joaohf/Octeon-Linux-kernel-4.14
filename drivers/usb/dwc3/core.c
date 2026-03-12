@@ -162,10 +162,10 @@ static void __dwc3_set_mode(struct work_struct *work)
 				otg_set_vbus(dwc->usb2_phy->otg, true);
 			if (dwc->usb2_generic_phy)
 				phy_set_mode(dwc->usb2_generic_phy, PHY_MODE_USB_HOST);
-				if (dwc->dis_split_quirk) {
-					reg = dwc3_readl(dwc->regs, DWC3_GUCTL3);
-					reg |= DWC3_GUCTL3_SPLITDISABLE;
-					dwc3_writel(dwc->regs, DWC3_GUCTL3, reg);
+			if (dwc->dis_split_quirk) {
+				reg = dwc3_readl(dwc->regs, DWC3_GUCTL3);
+				reg |= DWC3_GUCTL3_SPLITDISABLE;
+				dwc3_writel(dwc->regs, DWC3_GUCTL3, reg);
 			}
 		}
 		break;

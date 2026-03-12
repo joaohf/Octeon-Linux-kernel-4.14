@@ -1,28 +1,40 @@
 /***********************license start***************
- * Author: Cavium Inc.
+ * Copyright (c) 2003-2010  Cavium Inc. (support@cavium.com). All rights
+ * reserved.
  *
- * Contact: support@cavium.com
- * This file is part of the OCTEON SDK
  *
- * Copyright (c) 2003-2010 Cavium Inc.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
  *
- * This file is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License, Version 2, as
- * published by the Free Software Foundation.
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
  *
- * This file is distributed in the hope that it will be useful, but
- * AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or
- * NONINFRINGEMENT.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this file; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- * or visit http://www.gnu.org/licenses/.
- *
- * This file may also be available under a different license from Cavium.
- * Contact Cavium Inc. for more information
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+
+ *   * Neither the name of Cavium Inc. nor the names of
+ *     its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission.
+
+ * This Software, including technical data, may be subject to U.S. export  control
+ * laws, including the U.S. Export Administration Act and its  associated
+ * regulations, and may be subject to export or import  regulations in other
+ * countries.
+
+ * TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED "AS IS"
+ * AND WITH ALL FAULTS AND CAVIUM INC. MAKES NO PROMISES, REPRESENTATIONS OR
+ * WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH RESPECT TO
+ * THE SOFTWARE, INCLUDING ITS CONDITION, ITS CONFORMITY TO ANY REPRESENTATION OR
+ * DESCRIPTION, OR THE EXISTENCE OF ANY LATENT OR PATENT DEFECTS, AND CAVIUM
+ * SPECIFICALLY DISCLAIMS ALL IMPLIED (IF ANY) WARRANTIES OF TITLE,
+ * MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF
+ * VIRUSES, ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. THE ENTIRE  RISK ARISING OUT OF USE OR
+ * PERFORMANCE OF THE SOFTWARE LIES WITH YOU.
  ***********************license end**************************************/
 
 /**
@@ -30,16 +42,25 @@
  *
  * Support library for the SPI
  *
+ * <hr>$Revision$<hr>
  */
+#ifdef CVMX_BUILD_FOR_LINUX_KERNEL
 #include <linux/export.h>
 
 #include <asm/octeon/octeon.h>
 #include <asm/octeon/cvmx-spxx-defs.h>
 #include <asm/octeon/cvmx-stxx-defs.h>
 #include <asm/octeon/cvmx-srxx-defs.h>
-// #include <asm/octeon/cvmx-hwpko.h>
+#include <asm/octeon/cvmx-hwpko.h>
 #include <asm/octeon/cvmx-spi.h>
 #include <asm/octeon/cvmx-clock.h>
+#else
+#include "cvmx.h"
+#include "cvmx-sysinfo.h"
+#include "cvmx-hwpko.h"
+#include "cvmx-spi.h"
+#include "cvmx-clock.h"
+#endif
 
 #define INVOKE_CB(function_p, args...)		\
 	do {					\
@@ -51,7 +72,7 @@
 	} while (0)
 
 #if CVMX_ENABLE_DEBUG_PRINTS
-static const char *const modes[] = {
+static const char * const modes[] = {
 	"UNKNOWN", "TX Halfplex", "Rx Halfplex", "Duplex"
 };
 #endif
@@ -72,11 +93,11 @@ static cvmx_spi_callbacks_t cvmx_spi_callbacks = {
 /**
  * Get current SPI4 initialization callbacks
  *
- * @callbacks:  Pointer to the callbacks structure.to fill
+ * @param callbacks  Pointer to the callbacks structure.to fill
  *
- * Returns Pointer to cvmx_spi_callbacks_t structure.
+ * @return Pointer to cvmx_spi_callbacks_t structure.
  */
-void cvmx_spi_get_callbacks(cvmx_spi_callbacks_t * callbacks)
+void cvmx_spi_get_callbacks(cvmx_spi_callbacks_t *callbacks)
 {
 	memcpy(callbacks, &cvmx_spi_callbacks, sizeof(cvmx_spi_callbacks));
 }
@@ -84,9 +105,9 @@ void cvmx_spi_get_callbacks(cvmx_spi_callbacks_t * callbacks)
 /**
  * Set new SPI4 initialization callbacks
  *
- * @new_callbacks:  Pointer to an updated callbacks structure.
+ * @param new_callbacks  Pointer to an updated callbacks structure.
  */
-void cvmx_spi_set_callbacks(cvmx_spi_callbacks_t * new_callbacks)
+void cvmx_spi_set_callbacks(cvmx_spi_callbacks_t *new_callbacks)
 {
 	memcpy(&cvmx_spi_callbacks, new_callbacks, sizeof(cvmx_spi_callbacks));
 }
@@ -94,16 +115,16 @@ void cvmx_spi_set_callbacks(cvmx_spi_callbacks_t * new_callbacks)
 /**
  * Initialize and start the SPI interface.
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * @timeout:   Timeout to wait for clock synchronization in seconds
- * @num_ports: Number of SPI ports to configure
+ * @param timeout   Timeout to wait for clock synchronization in seconds
+ * @param num_ports Number of SPI ports to configure
  *
- * Returns Zero on success, negative of failure.
+ * @return Zero on success, negative of failure.
  */
 int cvmx_spi_start_interface(int interface, cvmx_spi_mode_t mode, int timeout,
 			     int num_ports)
@@ -140,14 +161,14 @@ int cvmx_spi_start_interface(int interface, cvmx_spi_mode_t mode, int timeout,
  * This routine restarts the SPI interface after it has lost synchronization
  * with its correspondent system.
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * @timeout:   Timeout to wait for clock synchronization in seconds
- * Returns Zero on success, negative of failure.
+ * @param timeout   Timeout to wait for clock synchronization in seconds
+ * @return Zero on success, negative of failure.
  */
 int cvmx_spi_restart_interface(int interface, cvmx_spi_mode_t mode, int timeout)
 {
@@ -183,19 +204,18 @@ int cvmx_spi_restart_interface(int interface, cvmx_spi_mode_t mode, int timeout)
 
 	return res;
 }
-
 EXPORT_SYMBOL(cvmx_spi_restart_interface);
 
 /**
  * Callback to perform SPI4 reset
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * Returns Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
+ * @return Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
  */
 int cvmx_spi_reset_cb(int interface, cvmx_spi_mode_t mode)
 {
@@ -223,9 +243,8 @@ int cvmx_spi_reset_cb(int interface, cvmx_spi_mode_t mode)
 	cvmx_wait(10 * MS);
 	spxx_bist_stat.u64 = cvmx_read_csr(CVMX_SPXX_BIST_STAT(interface));
 	if (spxx_bist_stat.s.stat0)
-		cvmx_dprintf
-		    ("ERROR SPI%d: BIST failed on receive datapath FIFO\n",
-		     interface);
+		cvmx_dprintf("ERROR SPI%d: BIST failed on receive datapath FIFO\n",
+			     interface);
 	if (spxx_bist_stat.s.stat1)
 		cvmx_dprintf("ERROR SPI%d: BIST failed on RX calendar table\n",
 			     interface);
@@ -302,17 +321,16 @@ int cvmx_spi_reset_cb(int interface, cvmx_spi_mode_t mode)
 /**
  * Callback to setup calendar and miscellaneous settings before clock detection
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * @num_ports: Number of ports to configure on SPI
- * Returns Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
+ * @param num_ports Number of ports to configure on SPI
+ * @return Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
  */
-int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
-			       int num_ports)
+int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode, int num_ports)
 {
 	int port;
 	int index;
@@ -337,8 +355,7 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 			srxx_spi4_calx.s.prt1 = port++;
 			srxx_spi4_calx.s.prt2 = port++;
 			srxx_spi4_calx.s.prt3 = port++;
-			srxx_spi4_calx.s.oddpar =
-			    ~(cvmx_dpop(srxx_spi4_calx.u64) & 1);
+			srxx_spi4_calx.s.oddpar = ~(cvmx_dpop(srxx_spi4_calx.u64) & 1);
 			cvmx_write_csr(CVMX_SRXX_SPI4_CALX(index, interface),
 				       srxx_spi4_calx.u64);
 			index++;
@@ -401,8 +418,7 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 			stxx_spi4_calx.s.prt1 = port++;
 			stxx_spi4_calx.s.prt2 = port++;
 			stxx_spi4_calx.s.prt3 = port++;
-			stxx_spi4_calx.s.oddpar =
-			    ~(cvmx_dpop(stxx_spi4_calx.u64) & 1);
+			stxx_spi4_calx.s.oddpar = ~(cvmx_dpop(stxx_spi4_calx.u64) & 1);
 			cvmx_write_csr(CVMX_STXX_SPI4_CALX(index, interface),
 				       stxx_spi4_calx.u64);
 			index++;
@@ -420,14 +436,14 @@ int cvmx_spi_calendar_setup_cb(int interface, cvmx_spi_mode_t mode,
 /**
  * Callback to perform clock detection
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * @timeout:   Timeout to wait for clock synchronization in seconds
- * Returns Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
+ * @param timeout   Timeout to wait for clock synchronization in seconds
+ * @return Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
  */
 int cvmx_spi_clock_detect_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 {
@@ -496,14 +512,14 @@ int cvmx_spi_clock_detect_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 /**
  * Callback to perform link training
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * @timeout:   Timeout to wait for link to be trained (in seconds)
- * Returns Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
+ * @param timeout   Timeout to wait for link to be trained (in seconds)
+ * @return Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
  */
 int cvmx_spi_training_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 {
@@ -563,14 +579,14 @@ int cvmx_spi_training_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 /**
  * Callback to perform calendar data synchronization
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * @timeout:   Timeout to wait for calendar data in seconds
- * Returns Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
+ * @param timeout   Timeout to wait for calendar data in seconds
+ * @return Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
  */
 int cvmx_spi_calendar_sync_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 {
@@ -578,9 +594,8 @@ int cvmx_spi_calendar_sync_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 	if (mode & CVMX_SPI_MODE_RX_HALFPLEX) {
 		/* SRX0 interface should be good, send calendar data */
 		union cvmx_srxx_com_ctl srxx_com_ctl;
-		cvmx_dprintf
-		    ("SPI%d: Rx is synchronized, start sending calendar data\n",
-		     interface);
+		cvmx_dprintf("SPI%d: Rx is synchronized, start sending calendar data\n",
+			     interface);
 		srxx_com_ctl.u64 = cvmx_read_csr(CVMX_SRXX_COM_CTL(interface));
 		srxx_com_ctl.s.inf_en = 1;
 		srxx_com_ctl.s.st_en = 1;
@@ -620,13 +635,13 @@ int cvmx_spi_calendar_sync_cb(int interface, cvmx_spi_mode_t mode, int timeout)
 /**
  * Callback to handle interface up
  *
- * @interface: The identifier of the packet interface to configure and
+ * @param interface The identifier of the packet interface to configure and
  *                  use as a SPI interface.
- * @mode:      The operating mode for the SPI interface. The interface
+ * @param mode      The operating mode for the SPI interface. The interface
  *                  can operate as a full duplex (both Tx and Rx data paths
  *                  active) or as a halfplex (either the Tx data path is
  *                  active or the Rx data path is active, but not both).
- * Returns Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
+ * @return Zero on success, non-zero error code on failure (will cause SPI initialization to abort)
  */
 int cvmx_spi_interface_up_cb(int interface, cvmx_spi_mode_t mode)
 {
@@ -660,7 +675,8 @@ int cvmx_spi_interface_up_cb(int interface, cvmx_spi_mode_t mode)
 		       gmxx_rxx_frm_max.u64);
 	gmxx_rxx_jabber.u64 = 0;
 	gmxx_rxx_jabber.s.cnt = 64 * 1024 - 4;
-	cvmx_write_csr(CVMX_GMXX_RXX_JABBER(0, interface), gmxx_rxx_jabber.u64);
+	cvmx_write_csr(CVMX_GMXX_RXX_JABBER(0, interface),
+		       gmxx_rxx_jabber.u64);
 
 	return 0;
 }

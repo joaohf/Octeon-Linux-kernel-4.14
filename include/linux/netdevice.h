@@ -1917,6 +1917,9 @@ struct net_device {
 	struct lock_class_key	*qdisc_tx_busylock;
 	struct lock_class_key	*qdisc_running_key;
 	bool			proto_down;
+#ifdef CONFIG_CAVIUM_IPFWD_OFFLOAD
+	u8 is_cvm_dev;
+#endif
 };
 #define to_net_dev(d) container_of(d, struct net_device, dev)
 
@@ -4530,5 +4533,15 @@ do {								\
 #define DEV_STATS_ADD(DEV, FIELD, VAL) 	\
 		atomic_long_add((VAL), &(DEV)->stats.__##FIELD)
 #define DEV_STATS_READ(DEV, FIELD) atomic_long_read(&(DEV)->stats.__##FIELD)
+
+#ifdef CONFIG_CAVIUM_BRIDGE_OFFLOAD
+extern u32 (*cvm_br_rx_hook)(struct sk_buff *);
+#endif
+
+#ifdef CONFIG_CAVIUM_IPFWD_OFFLOAD
+/* Cavium fast-path rx/tx hooks */
+extern u32 (*cvm_ipfwd_rx_hook)(struct sk_buff *);
+extern int (*cvm_ipfwd_tx_hook)(struct sk_buff *);
+#endif
 
 #endif	/* _LINUX_NETDEVICE_H */

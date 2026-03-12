@@ -43,6 +43,8 @@
 #include <asm/smp-ops.h>
 #include <asm/prom.h>
 
+#include <mach_bootmem.h>
+
 #ifdef CONFIG_MIPS_ELF_APPENDED_DTB
 const char __section(.appended_dtb) __appended_dtb[0x100000];
 #endif /* CONFIG_MIPS_ELF_APPENDED_DTB */
@@ -65,6 +67,7 @@ unsigned long mips_machtype __read_mostly = MACH_UNKNOWN;
 EXPORT_SYMBOL(mips_machtype);
 
 struct boot_mem_map boot_mem_map;
+bool initrd_in_reserved;
 
 static char __initdata command_line[COMMAND_LINE_SIZE];
 char __initdata arcs_cmdline[COMMAND_LINE_SIZE];
@@ -82,6 +85,7 @@ EXPORT_SYMBOL(mips_io_port_base);
 
 static struct resource code_resource = { .name = "Kernel code", };
 static struct resource data_resource = { .name = "Kernel data", };
+static struct resource bss_resource = { .name = "Kernel bss", };
 
 static void *detect_magic __initdata = detect_memory_region;
 
@@ -201,6 +205,9 @@ static void __init print_memory_map(void)
 			break;
 		case BOOT_MEM_INIT_RAM:
 			printk(KERN_CONT "(usable after init)\n");
+			break;
+		case BOOT_MEM_KERNEL:
+			printk(KERN_CONT "(kernel data and code)\n");
 			break;
 		case BOOT_MEM_ROM_DATA:
 			printk(KERN_CONT "(ROM data)\n");
@@ -355,11 +362,16 @@ static unsigned long __init init_initrd(void)
  * Initialize the bootmem allocator. It also setup initrd related data
  * if needed.
  */
-#if defined(CONFIG_SGI_IP27) || (defined(CONFIG_CPU_LOONGSON3) && defined(CONFIG_NUMA))
+#if defined(CONFIG_SGI_IP27) || (defined(CONFIG_CPU_LOONGSON3) && defined(CONFIG_NUMA)) || \
+	(defined(CONFIG_CPU_CAVIUM_OCTEON) && defined(CONFIG_NUMA))
+#ifndef mach_bootmem_init
+static void mach_bootmem_init(void) {}
+#endif
 
 static void __init bootmem_init(void)
 {
 	init_initrd();
+	mach_bootmem_init();
 	finalize_initrd();
 }
 
@@ -387,8 +399,13 @@ static void __init bootmem_init(void)
 	 * as our memory range starting point. Once bootmem is inited we
 	 * will reserve the area used for the initrd.
 	 */
-	init_initrd();
-	reserved_end = (unsigned long) PFN_UP(__pa_symbol(&_end));
+	if (initrd_in_reserved) {
+		init_initrd();
+		reserved_end = PFN_UP(__pa_symbol(&_end));
+	} else {
+		reserved_end = max_t(unsigned long, init_initrd(),
+				     PFN_UP(__pa_symbol(&_end)));
+	}
 
 	/*
 	 * max_low_pfn is not a number of pages. The number of pages
@@ -404,8 +421,14 @@ static void __init bootmem_init(void)
 	for (i = 0; i < boot_mem_map.nr_map; i++) {
 		unsigned long start, end;
 
-		if (boot_mem_map.map[i].type != BOOT_MEM_RAM)
+		switch (boot_mem_map.map[i].type) {
+		case BOOT_MEM_RAM:
+		case BOOT_MEM_INIT_RAM:
+			break;
+		default:
+			/* Not usable memory */
 			continue;
+		}
 
 		start = PFN_UP(boot_mem_map.map[i].addr);
 		end = PFN_DOWN(boot_mem_map.map[i].addr
@@ -835,6 +858,7 @@ static void __init arch_mem_init(char **cmdline_p)
 {
 	struct memblock_region *reg;
 	extern void plat_mem_setup(void);
+	phys_addr_t kernel_begin, init_begin, init_end, kernel_end;
 
 	/* call board setup routine */
 	plat_mem_setup();
@@ -845,12 +869,13 @@ static void __init arch_mem_init(char **cmdline_p)
 	 * into another memory section you don't want that to be
 	 * freed when the initdata is freed.
 	 */
-	arch_mem_addpart(PFN_DOWN(__pa_symbol(&_text)) << PAGE_SHIFT,
-			 PFN_UP(__pa_symbol(&_edata)) << PAGE_SHIFT,
-			 BOOT_MEM_RAM);
-	arch_mem_addpart(PFN_UP(__pa_symbol(&__init_begin)) << PAGE_SHIFT,
-			 PFN_DOWN(__pa_symbol(&__init_end)) << PAGE_SHIFT,
-			 BOOT_MEM_INIT_RAM);
+	kernel_begin = PFN_DOWN(__pa_symbol(&_text)) << PAGE_SHIFT;
+	kernel_end = PFN_UP(__pa_symbol(&_end)) << PAGE_SHIFT;
+	init_begin = PFN_UP(__pa_symbol(&__init_begin)) << PAGE_SHIFT;
+	init_end = PFN_DOWN(__pa_symbol(&__init_end)) << PAGE_SHIFT;
+	arch_mem_addpart(kernel_begin, init_begin, BOOT_MEM_KERNEL);
+	arch_mem_addpart(init_end, kernel_end, BOOT_MEM_KERNEL);
+	arch_mem_addpart(init_begin, init_end, BOOT_MEM_INIT_RAM);
 
 	pr_info("Determined physical RAM map:\n");
 	print_memory_map();
@@ -948,6 +973,8 @@ static void __init resource_init(void)
 	code_resource.end = __pa_symbol(&_etext) - 1;
 	data_resource.start = __pa_symbol(&_etext);
 	data_resource.end = __pa_symbol(&_edata) - 1;
+	bss_resource.start = __pa_symbol(&__bss_start);
+	bss_resource.end = __pa_symbol(&__bss_stop) - 1;
 
 	for (i = 0; i < boot_mem_map.nr_map; i++) {
 		struct resource *res;
@@ -970,6 +997,7 @@ static void __init resource_init(void)
 		case BOOT_MEM_RAM:
 		case BOOT_MEM_INIT_RAM:
 		case BOOT_MEM_ROM_DATA:
+		case BOOT_MEM_KERNEL:
 			res->name = "System RAM";
 			res->flags |= IORESOURCE_SYSRAM;
 			break;
@@ -987,6 +1015,7 @@ static void __init resource_init(void)
 		 */
 		request_resource(res, &code_resource);
 		request_resource(res, &data_resource);
+		request_resource(res, &bss_resource);
 		request_crashkernel(res);
 	}
 }

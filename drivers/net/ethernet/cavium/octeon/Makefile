@@ -2,11 +2,16 @@
 # Makefile for the Cavium network device drivers.
 #
 
+obj-$(CONFIG_OCTEON_BGX_PORT)		+= octeon-bgx-port.o
+obj-$(CONFIG_OCTEON_BGX_NEXUS)		+= octeon-bgx-nexus.o
+obj-$(CONFIG_OCTEON_COMMON_NEXUS)	+= octeon-common-nexus.o
+obj-$(CONFIG_OCTEON_SRIO_NEXUS)		+= octeon-srio-nexus.o
+obj-$(CONFIG_OCTEON3_ETHERNET)		+= octeon3-ethernet.o
 obj-$(CONFIG_OCTEON_MGMT_ETHERNET)	+= octeon_mgmt.o
 obj-$(CONFIG_OCTEON_POW_ONLY_ETHERNET)	+= octeon-pow-ethernet.o
-obj-$(CONFIG_OCTEON_ETHERNET) +=  octeon-ethernet.o
-obj-$(CONFIG_OCTEON_ETHERNET_MEM) += ethernet-mem.o
-obj-$(CONFIG_OCTEON_ETHERNET_COMMON) += octeon_common.o
+obj-$(CONFIG_OCTEON_ETHERNET)		+= octeon-ethernet.o
+obj-$(CONFIG_OCTEON_ETHERNET_MEM)	+= ethernet-mem.o
+obj-$(CONFIG_OCTEON_ETHERNET_COMMON)	+= octeon_common.o
 
 octeon-ethernet-objs := ethernet.o
 octeon-ethernet-objs += ethernet-mdio.o
@@ -18,4 +23,3 @@ octeon-ethernet-objs += ethernet-tx.o
 ifdef CONFIG_RAPIDIO
 octeon-ethernet-objs += ethernet-srio.o
 endif
-octeon-ethernet-objs += cvmx-pko.o cvmx-ipd.o cvmx-cmd-queue.o cvmx-helper-xaui.o cvmx-helper-rgmii.o cvmx-helper-sgmii.o cvmx-helper-npi.o cvmx-helper-loop.o cvmx-helper-spi.o cvmx-helper-util.o cvmx-helper-agl.o cvmx-fpa-resource.o cvmx-helper-errata.o cvmx-helper.o cvmx-helper-board-ethernet.o cvmx-helper-cfg.o cvmx-helper-agl.o cvmx-pko-internal-ports-range.o cvmx-appcfg-transport.o cvmx-qlm.o cvmx-agl.o

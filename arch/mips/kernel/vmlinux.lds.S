@@ -4,6 +4,11 @@
 
 #define PAGE_SIZE _PAGE_SIZE
 
+#ifdef PHYSADDR
+phys_entry = kernel_entry - VMLINUX_LOAD_ADDRESS + PHYSADDR;
+#define LOAD_OFFSET (VMLINUX_LOAD_ADDRESS - PHYSADDR)
+#endif
+
 /*
  * Put .bss..swapper_pg_dir as the first thing in .bss. This will
  * ensure that it has .bss alignment (64K).
@@ -15,12 +20,18 @@
 #undef mips
 #define mips mips
 OUTPUT_ARCH(mips)
+#ifdef PHYSADDR
+ENTRY(phys_entry)
+#define AT_LOCATION AT(PHYSADDR)
+#else
 ENTRY(kernel_entry)
+#define AT_LOCATION
+#endif
 PHDRS {
-	text PT_LOAD FLAGS(7);	/* RWX */
-#ifndef CONFIG_CAVIUM_OCTEON_SOC
+	text PT_LOAD AT_LOCATION FLAGS(7);	/* RWX */
+#ifndef CONFIG_DISABLE_ELF_NOTE_HEADER
 	note PT_NOTE FLAGS(4);	/* R__ */
-#endif /* CAVIUM_OCTEON_SOC */
+#endif /* CONFIG_DISABLE_ELF_NOTE_HEADER */
 }
 
 #ifdef CONFIG_32BIT
@@ -53,7 +64,7 @@ SECTIONS
 	. = LINKER_LOAD_ADDRESS;
 	/* read-only */
 	_text = .;	/* Text and read-only data */
-	.text : {
+	.text : AT_LOCATION {
 		TEXT_TEXT
 		SCHED_TEXT
 		CPUIDLE_TEXT
@@ -76,11 +87,11 @@ SECTIONS
 		__stop___dbe_table = .;
 	}
 
-#ifdef CONFIG_CAVIUM_OCTEON_SOC
+#ifdef CONFIG_DISABLE_ELF_NOTE_HEADER
 #define NOTES_HEADER
-#else /* CONFIG_CAVIUM_OCTEON_SOC */
+#else /* CONFIG_DISABLE_ELF_NOTE_HEADER */
 #define NOTES_HEADER :note
-#endif /* CONFIG_CAVIUM_OCTEON_SOC */
+#endif /* CONFIG_DISABLE_ELF_NOTE_HEADER */
 	NOTES :text NOTES_HEADER
 	.dummy : { *(.dummy) } :text
 
